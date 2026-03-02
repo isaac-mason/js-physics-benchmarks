@@ -1,0 +1,338 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+#title-top-left {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #e0e0e0;
+}
+
+#github-link {
+    font-size: 12px;
+    color: #999;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+}
+
+#github-link:hover {
+    color: #aaa;
+}
+
+#controls-bottom-left {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: calc(100vw - 32px);
+}
+
+.control-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #e0e0e0;
+    padding-left: 2px;
+}
+
+.engine-buttons {
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.85);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+}
+
+.engine-buttons::-webkit-scrollbar {
+    height: 4px;
+}
+
+.engine-buttons::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.engine-buttons::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+.engine-btn {
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    min-width: 150px;
+    flex-shrink: 0;
+}
+
+.engine-btn:hover {
+    border-color: #666;
+    color: #e0e0e0;
+}
+
+.engine-btn.active {
+    background: #00ff88;
+    color: #000;
+    border-color: #00ff88;
+}
+
+/* Card header: name + tag on one line */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+}
+
+.card-name {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #e0e0e0;
+    text-decoration: none;
+}
+
+.card-name:hover {
+    text-decoration: underline;
+}
+
+.engine-btn.active .card-name {
+    color: #000;
+}
+
+/* Version line */
+.card-version {
+    font-size: 9px;
+    color: #888;
+    letter-spacing: 0.03em;
+    margin-bottom: 8px;
+}
+
+.engine-btn.active .card-version {
+    color: #005533;
+}
+
+/* Shared stat label/value used in col-stat and total-stat rows */
+.card-stat-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #888;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.engine-btn.active .card-stat-label {
+    color: #005533;
+}
+
+.card-stat-value {
+    font-size: 10px;
+    color: #ccc;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.engine-btn.active .card-stat-value {
+    color: #003322;
+}
+
+/* Two-column stat layout */
+.card-cols {
+    display: flex;
+    gap: 0;
+    margin-bottom: 6px;
+}
+
+.card-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.card-col-label {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 2px;
+}
+
+.engine-btn.active .card-col-label {
+    color: #007744;
+}
+
+.card-col-divider {
+    width: 1px;
+    background: #333;
+    margin: 0 8px;
+    align-self: stretch;
+}
+
+.engine-btn.active .card-col-divider {
+    background: #00bb66;
+}
+
+.card-col-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 4px;
+}
+
+/* Total row */
+.card-totals {
+    border-top: 1px solid #333;
+    padding-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.engine-btn.active .card-totals {
+    border-top-color: #00bb66;
+}
+
+.card-total-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.card-stat-value--highlight {
+    color: #e0e0e0;
+    font-weight: 700;
+}
+
+.engine-btn.active .card-stat-value--highlight {
+    color: #000;
+}
+
+.engine-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 1px 4px;
+    border-radius: 3px;
+    vertical-align: middle;
+    text-transform: uppercase;
+}
+
+.tag-js {
+    background: #3a3000;
+    color: #f0c040;
+    border: 1px solid #6a5800;
+}
+
+.tag-wasm {
+    background: #1a0a3a;
+    color: #a080ff;
+    border: 1px solid #4a2a8a;
+}
+
+canvas {
+    display: block;
+}
+
+#top-right-panel {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+#scenario-gui {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.scenario-buttons {
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.85);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+}
+
+.scenario-buttons::-webkit-scrollbar {
+    height: 4px;
+}
+
+.scenario-buttons::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scenario-buttons::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+.scenario-btn {
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.scenario-btn:hover {
+    border-color: #666;
+    color: #e0e0e0;
+}
+
+.scenario-btn.active {
+    background: #00aaff;
+    color: #000;
+    border-color: #00aaff;
+    font-weight: 600;
+}

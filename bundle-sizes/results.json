@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "measuredAt": "2026-03-02T14:00:54.944Z",
+    "versions": {
+      "crashcat": "0.0.2",
+      "rapier": "0.19.3",
+      "jolt": "1.0.0",
+      "cannon": "0.20.0",
+      "bounce": "1.7.0",
+      "ammo": "1ed8b58"
+    }
+  },
+  "results": {
+    "crashcat": {
+      "name": "crashcat",
+      "js": {
+        "raw": 744057,
+        "minified": 180986,
+        "minifiedGzip": 51109
+      }
+    },
+    "rapier": {
+      "name": "rapier",
+      "js": {
+        "raw": 476296,
+        "minified": 136640,
+        "minifiedGzip": 23427
+      },
+      "wasm": {
+        "total": 1570176,
+        "totalGzip": 586784,
+        "files": {
+          "rapier_wasm3d_bg.wasm": {
+            "raw": 1570176,
+            "gzip": 586784
+          }
+        }
+      }
+    },
+    "jolt": {
+      "name": "jolt",
+      "js": {
+        "raw": 933289,
+        "minified": 943474,
+        "minifiedGzip": 132695
+      },
+      "wasm": {
+        "total": 1993586,
+        "totalGzip": 732248,
+        "files": {
+          "jolt-physics.wasm.wasm": {
+            "raw": 1993586,
+            "gzip": 732248
+          }
+        }
+      }
+    },
+    "cannon": {
+      "name": "cannon",
+      "js": {
+        "raw": 230783,
+        "minified": 80865,
+        "minifiedGzip": 22872
+      }
+    },
+    "bounce": {
+      "name": "bounce",
+      "js": {
+        "raw": 635843,
+        "minified": 306911,
+        "minifiedGzip": 70268
+      }
+    },
+    "ammo": {
+      "name": "ammo",
+      "js": {
+        "raw": 447201,
+        "minified": 442280,
+        "minifiedGzip": 50222
+      },
+      "wasm": {
+        "total": 747690,
+        "totalGzip": 291163,
+        "files": {
+          "ammo.wasm.wasm": {
+            "raw": 747690,
+            "gzip": 291163
+          }
+        }
+      }
+    }
+  }
+}
