@@ -10,6 +10,7 @@
     "lint": "biome lint --write src/.",
     "bundle-sizes": "node bundle-sizes/build.mjs"
   },
+  "packageManager": "pnpm@8.15.2+sha1.798034f615aa211c6c2ae00010cc20be5fc102ee",
   "dependencies": {
     "@dimforge/rapier3d": "0.19.3",
     "@perplexdotgg/bounce": "^1.7.0",
