@@ -19,8 +19,6 @@ function motionTypeToImpl(motionType: MotionType): 1 | 2 | 4 {
     }
 }
 
-/** Build a fresh CANNON.Shape from a descriptor. Must be called per-body because
- *  cannon-es sets shape.body = thisBody (single-owner back-reference). */
 function buildCannonShape(desc: PhysicsShape): CANNON.Shape {
     switch (desc.type) {
         case ShapeType.BOX:
@@ -28,7 +26,6 @@ function buildCannonShape(desc: PhysicsShape): CANNON.Shape {
         case ShapeType.SPHERE:
             return new CANNON.Sphere(desc.radius);
         case ShapeType.CONVEX_HULL: {
-            // quickhull3 returns flat triangle indices [i0,j0,k0, i1,j1,k1, ...]
             const indices = quickhull3(desc.points);
             const vertices: CANNON.Vec3[] = [];
             for (let i = 0; i < desc.points.length; i += 3) {
@@ -41,8 +38,6 @@ function buildCannonShape(desc: PhysicsShape): CANNON.Shape {
             return new CANNON.ConvexPolyhedron({ vertices, faces });
         }
         case ShapeType.TRIANGLE_MESH: {
-            // cannon-es Trimesh stores indices as Int16Array internally — max index 32,767.
-            // TorusKnotGeometry with default params produces 585 vertices, well within range.
             const shape = new CANNON.Trimesh(Array.from(desc.positions), Array.from(desc.indices));
             shape.updateNormals();
             return shape;
@@ -55,7 +50,7 @@ export function init(): Promise<void> {
 }
 
 export function disposeWorld(_state: ImplState): void {
-    // pure JS — GC'd
+    // no-op
 }
 
 export function createWorld(): ImplState {
@@ -90,23 +85,20 @@ export function disposeContactListener(state: ImplState): void {
     }
 }
 
-/** Returns the PhysicsShape descriptor — cannon-es shapes are cloned per-body at createRigidBody time. */
-export function createShape(_state: ImplState, desc: PhysicsShape): PhysicsShape {
-    return desc;
+export function createShape(_state: ImplState, desc: PhysicsShape): CANNON.Shape {
+    return buildCannonShape(desc);
 }
 
-/** No-op: descriptor is a plain JS object, GC'd. */
-export function destroyShape(_state: ImplState, _implHandle: PhysicsShape): void {
-    // no-op
+export function destroyShape(_state: ImplState, _implHandle: CANNON.Shape): void {
+    // no-op — cannon shapes are GC'd
 }
 
-export function createRigidBody(state: ImplState, options: RigidBodyOptions, implShape: PhysicsShape): CANNON.Body {
-    const shape = buildCannonShape(implShape);
+export function createRigidBody(state: ImplState, options: RigidBodyOptions, implShape: CANNON.Shape): CANNON.Body {
     const mass = options.motionType === MotionType.DYNAMIC ? (options.mass ?? 1) : 0;
     const body = new CANNON.Body({
         mass,
         type: motionTypeToImpl(options.motionType),
-        shape,
+        shape: implShape,
         position: new CANNON.Vec3(options.position[0], options.position[1], options.position[2]),
     });
     if (options.quaternion) {

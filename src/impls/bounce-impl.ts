@@ -46,7 +46,7 @@ export function createWorld(): ImplState {
 }
 
 export function disposeWorld(_state: ImplState): void {
-    // pure JS — GC'd
+    // no-op
 }
 
 export function setGravity(state: ImplState, x: number, y: number, z: number): void {
@@ -83,7 +83,7 @@ export function createShape(_state: ImplState, desc: PhysicsShape): PhysicsShape
 }
 
 export function destroyShape(_state: ImplState, _implHandle: PhysicsShape): void {
-    // no-op, gc'd
+    // no-op
 }
 
 export function createRigidBody(state: ImplState, options: RigidBodyOptions, implShape: PhysicsShape): Body {

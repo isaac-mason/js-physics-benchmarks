@@ -89,13 +89,10 @@ export function disposeContactListener(state: ImplState): void {
 
 export type RapierShapeHandle = { physicsDesc: PhysicsShape };
 
-/** Returns a handle wrapping the original PhysicsShape descriptor. Rapier has no standalone shape
- *  object — a fresh ColliderDesc is built per body to avoid mutating shared state. */
 export function createShape(_state: ImplState, desc: PhysicsShape): RapierShapeHandle {
     return { physicsDesc: desc };
 }
 
-/** No-op: plain JS object, GC'd automatically. */
 export function destroyShape(_state: ImplState, _implHandle: RapierShapeHandle): void {
     // no-op
 }
@@ -120,9 +117,9 @@ export function createRigidBody(state: ImplState, options: RigidBodyOptions, imp
     }
     const rigidBody = state.world.createRigidBody(bodyDesc);
 
-    // Clone the desc so per-body material settings don't mutate the shared descriptor
+    // clone the desc so per-body material settings don't mutate the shared descriptor
     const colliderDesc = descFromShape(
-        // We reconstruct from the original PhysicsShape each time — Rapier has no true native
+        // we reconstruct from the original PhysicsShape each time — Rapier has no true native
         // shape sharing; each createCollider allocates WASM memory anyway.
         implShape.physicsDesc,
     );

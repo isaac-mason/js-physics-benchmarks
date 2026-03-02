@@ -60,12 +60,9 @@ export function createWorld(): ImplState {
 }
 
 export function disposeWorld(state: ImplState): void {
-    // Scratch objects
     A.destroy(state._tmpTransform);
     A.destroy(state._tmpVec);
     A.destroy(state._tmpCb);
-    // Note: dispatcher, broadphase, solver, collisionConfig are owned by btDiscreteDynamicsWorld
-    // in ammo.js and freed when the world is freed. We don't destroy them separately.
     A.destroy(state.world);
 }
 
@@ -75,7 +72,6 @@ export function setGravity(state: ImplState, x: number, y: number, z: number): v
 }
 
 export function stepSimulation(state: ImplState, dt: number): void {
-    // Use a single fixed sub-step of exactly dt so the caller's fixed timestep is respected
     state.world.stepSimulation(dt, 1, dt);
 
     if (!state._contactCallback) return;
@@ -86,7 +82,6 @@ export function stepSimulation(state: ImplState, dt: number): void {
 
     for (let i = 0; i < numManifolds; i++) {
         const manifold = dispatcher.getManifoldByIndexInternal(i);
-        // Only fire if there is actual penetration
         if (manifold.getNumContacts() === 0) continue;
 
         const ptrA: number = A.getPointer(manifold.getBody0());
@@ -153,7 +148,6 @@ export function createShape(_state: ImplState, desc: PhysicsShape): Ammo {
     }
 }
 
-/** Destroy a btCollisionShape. Must be called only after all bodies using it have been removed. */
 export function destroyShape(_state: ImplState, implHandle: Ammo): void {
     A.destroy(implHandle);
 }
