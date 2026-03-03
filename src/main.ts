@@ -55,19 +55,13 @@ function fmtKb(bytes: number): string {
 let accumulator = 0;
 let lastTime = performance.now();
 
-// Active scenario — erased types so any scenario fits
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let activeScenario: Scenario<any, any> | null = null;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let activeScenarioState: any = null;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let activeScenarioControls: any;
 let activeScenarioGui: GUI | undefined;
 let activeScenarioControlsMounted = false;
 let activeScenarioName = 'cube-heap';
 let activeEngineName = 'crashcat';
-
-// --- URL query param helpers ---
 
 function encodeParams(engine: string, scenario: string, controls: unknown): void {
     let qs = `engine=${encodeURIComponent(engine)}&scenario=${encodeURIComponent(scenario)}`;
@@ -163,7 +157,6 @@ ENGINES.forEach(({ id, label, tag, repoUrl }) => {
     `;
     engineButtonsContainer.appendChild(btn);
 
-    // Prevent the link click from also triggering the engine-switch button handler
     btn.querySelector<HTMLAnchorElement>('.card-name')!.addEventListener('click', (e) => {
         e.stopPropagation();
     });
@@ -205,7 +198,7 @@ function teardownControls(): void {
 
 async function startEngine(name: string): Promise<void> {
     activeEngineName = name;
-    // Teardown only physics state — controls/gui survive engine switches
+    
     if (impl && physics) {
         if (activeScenario?.dispose && activeScenarioState) {
             activeScenario.dispose(activeScenarioState, physics, currentRenderer);
@@ -237,7 +230,6 @@ async function startEngine(name: string): Promise<void> {
 
     activeScenario = getScenario(activeScenarioName);
 
-    // Mount controls only on first load; reuse on subsequent engine switches
     if (!activeScenarioControlsMounted) {
         const mounted = mountControls(activeScenario);
         activeScenarioControls = mounted.controls;
@@ -346,14 +338,12 @@ async function init(): Promise<void> {
     activeEngineName = engine;
     activeScenarioName = scenario;
 
-    // Sync button active states to restored hash values
     for (const b of engineButtons) b.classList.toggle('active', b.dataset.engine === engine);
     for (const b of scenarioButtons) b.classList.toggle('active', b.dataset.scenario === scenario);
 
     await Promise.all([crashcat.init(), rapier.init(), jolt.init(), cannon.init(), bounce.init(), ammo.init()]);
     await startEngine(engine);
 
-    // Restore controls from hash after they've been mounted
     if (restoredControls) {
         applyRestoredControls(restoredControls);
         encodeParams(activeEngineName, activeScenarioName, activeScenarioControls);
