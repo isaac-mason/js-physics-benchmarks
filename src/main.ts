@@ -1,4 +1,5 @@
 import GUI from 'lil-gui';
+import bundleSizes from '../bundle-sizes/results.json';
 import type { PhysicsState } from './api';
 import { createPhysicsState, snapshot } from './api';
 import * as ammo from './impls/ammo-impl';
@@ -19,7 +20,6 @@ import type { Scenario } from './scenarios/types';
 import { createStats } from './stats';
 
 const PHYSICS_DT = 1 / 60;
-
 const MAX_SUBSTEPS = 8;
 
 let impl: PhysicsImpl;
@@ -47,6 +47,10 @@ const SCENARIOS = [
     { id: 'stable-stacking',    label: 'Stacking Stability', create: createStableStackingScenario },
     { id: 'raycasts',           label: 'Raycasts',           create: createRaycastsScenario },
 ]
+
+function fmtKb(bytes: number): string {
+    return `${(bytes / 1024).toFixed(1)} kB`;
+}
 
 let accumulator = 0;
 let lastTime = performance.now();
@@ -110,7 +114,74 @@ function applyRestoredControls(controls: Record<string, unknown>): void {
     for (const c of activeScenarioGui.controllersRecursive()) c.updateDisplay();
 }
 
-function getScenarioFactory(name: string): Scenario<any, any> {
+const engineButtonsContainer = document.getElementById('engine-buttons')!;
+ENGINES.forEach(({ id, label, tag, repoUrl }) => {
+    const sizes = bundleSizes.results[id as keyof typeof bundleSizes.results];
+    const version = bundleSizes.meta.versions[id as keyof typeof bundleSizes.meta.versions];
+
+    const jsOk = sizes && 'js' in sizes;
+    const wasmOk = sizes && 'wasm' in sizes && sizes.wasm;
+    const jsMin = jsOk ? (sizes as any).js.minified : null;
+    const jsMinGz = jsOk ? (sizes as any).js.minifiedGzip : null;
+    const wasmRaw = wasmOk ? (sizes as any).wasm.total : null;
+    const wasmGzip = wasmOk ? (sizes as any).wasm.totalGzip : null;
+
+    const totalMin = jsMin != null ? jsMin + (wasmRaw ?? 0) : null;
+    const totalMinGz = jsMinGz != null ? jsMinGz + (wasmGzip ?? 0) : null;
+
+    const wasmCols = wasmOk
+        ? `
+            <div class="card-col-divider"></div>
+            <div class="card-col">
+                <div class="card-col-label">WASM</div>
+                <div class="card-col-stat"><span class="card-stat-label">raw</span><span class="card-stat-value">${wasmRaw != null ? fmtKb(wasmRaw) : '—'}</span></div>
+                <div class="card-col-stat"><span class="card-stat-label">gz</span><span class="card-stat-value">${wasmGzip != null ? fmtKb(wasmGzip) : '—'}</span></div>
+            </div>`
+        : '';
+
+    const btn = document.createElement('button');
+    btn.className = `engine-btn${id === 'crashcat' ? ' active' : ''}`;
+    btn.dataset.engine = id;
+    btn.innerHTML = `
+        <div class="card-header">
+            <a class="card-name" href="${repoUrl}" target="_blank" rel="noopener noreferrer">${label}</a>
+            <span class="engine-tag tag-${tag}">${tag}</span>
+        </div>
+        <div class="card-version">v${version}</div>
+        <div class="card-cols">
+            <div class="card-col">
+                <div class="card-col-label">JS</div>
+                <div class="card-col-stat"><span class="card-stat-label">min</span><span class="card-stat-value">${jsMin != null ? fmtKb(jsMin) : '—'}</span></div>
+                <div class="card-col-stat"><span class="card-stat-label">min+gz</span><span class="card-stat-value">${jsMinGz != null ? fmtKb(jsMinGz) : '—'}</span></div>
+            </div>
+            ${wasmCols}
+        </div>
+        <div class="card-totals">
+            <div class="card-total-stat"><span class="card-stat-label">total min</span><span class="card-stat-value">${totalMin != null ? fmtKb(totalMin) : '—'}</span></div>
+            <div class="card-total-stat"><span class="card-stat-label">total min+gz</span><span class="card-stat-value card-stat-value--highlight">${totalMinGz != null ? fmtKb(totalMinGz) : '—'}</span></div>
+        </div>
+    `;
+    engineButtonsContainer.appendChild(btn);
+
+    // Prevent the link click from also triggering the engine-switch button handler
+    btn.querySelector<HTMLAnchorElement>('.card-name')!.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+});
+
+const scenarioButtonsContainer = document.getElementById('scenario-buttons')!;
+SCENARIOS.forEach(({ id, label }) => {
+    const btn = document.createElement('button');
+    btn.className = `scenario-btn${id === activeScenarioName ? ' active' : ''}`;
+    btn.dataset.scenario = id;
+    btn.textContent = label;
+    scenarioButtonsContainer.appendChild(btn);
+});
+
+const engineButtons = document.querySelectorAll('.engine-btn') as NodeListOf<HTMLButtonElement>;
+const scenarioButtons = document.querySelectorAll('.scenario-btn') as NodeListOf<HTMLButtonElement>;
+
+function getScenario(name: string): Scenario<any, any> {
     const entry = SCENARIOS.find((s) => s.id === name);
     if (!entry) throw new Error(`Unknown scenario: ${name}`);
     return entry.create();
@@ -164,7 +235,7 @@ async function startEngine(name: string): Promise<void> {
     currentRenderer.resetCamera();
     stats.reset();
 
-    activeScenario = getScenarioFactory(activeScenarioName);
+    activeScenario = getScenario(activeScenarioName);
 
     // Mount controls only on first load; reuse on subsequent engine switches
     if (!activeScenarioControlsMounted) {
@@ -182,6 +253,7 @@ function startScenario(name: string): void {
     activeScenarioName = name;
     if (!impl || !physics) return;
 
+    // Full teardown — physics + controls/gui
     if (activeScenario?.dispose && activeScenarioState) {
         activeScenario.dispose(activeScenarioState, physics, currentRenderer);
     }
@@ -193,7 +265,7 @@ function startScenario(name: string): void {
     currentRenderer.resetCamera();
     stats.reset();
 
-    activeScenario = getScenarioFactory(name);
+    activeScenario = getScenario(name);
 
     const mounted = mountControls(activeScenario);
     activeScenarioControls = mounted.controls;
@@ -217,23 +289,27 @@ function animate(): void {
 
     accumulator += frameTime;
 
-    stats.beginPhysics();
     let stepped = 0;
     while (accumulator >= PHYSICS_DT && stepped < MAX_SUBSTEPS) {
         if (activeScenario && activeScenarioState && physics) {
+            stats.beginPreUpdate();
             activeScenario.preUpdate(activeScenarioState, physics, currentRenderer, activeScenarioControls, PHYSICS_DT);
+            stats.endPreUpdate();
         }
         if (physics) {
+            stats.beginStep();
             physics.impl.stepSimulation(physics.world, PHYSICS_DT);
             snapshot(physics);
+            stats.endStep();
         }
+        stats.beginPostUpdate();
         if (activeScenario?.postUpdate && activeScenarioState && physics) {
             activeScenario.postUpdate(activeScenarioState, physics, currentRenderer, activeScenarioControls, PHYSICS_DT);
         }
+        stats.endPostUpdate();
         accumulator -= PHYSICS_DT;
         stepped++;
     }
-    stats.endPhysics();
 
     stats.beginSync();
     if (physics) {
@@ -249,36 +325,35 @@ function animate(): void {
     stats.end();
 }
 
-const engineButtons = document.querySelectorAll<HTMLButtonElement>('[data-engine]');
-const scenarioButtons = document.querySelectorAll<HTMLButtonElement>('[data-scenario]');
-
-for (const btn of engineButtons) {
+engineButtons.forEach((btn) => {
     btn.addEventListener('click', async () => {
         for (const b of engineButtons) b.classList.remove('active');
         btn.classList.add('active');
         await startEngine(btn.dataset.engine!);
     });
-}
+});
 
-for (const btn of scenarioButtons) {
+scenarioButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
         for (const b of scenarioButtons) b.classList.remove('active');
         btn.classList.add('active');
         startScenario(btn.dataset.scenario!);
     });
-}
+});
 
 async function init(): Promise<void> {
     const { engine, scenario, controls: restoredControls } = decodeParams();
     activeEngineName = engine;
     activeScenarioName = scenario;
 
+    // Sync button active states to restored hash values
     for (const b of engineButtons) b.classList.toggle('active', b.dataset.engine === engine);
     for (const b of scenarioButtons) b.classList.toggle('active', b.dataset.scenario === scenario);
 
     await Promise.all([crashcat.init(), rapier.init(), jolt.init(), cannon.init(), bounce.init(), ammo.init()]);
     await startEngine(engine);
 
+    // Restore controls from hash after they've been mounted
     if (restoredControls) {
         applyRestoredControls(restoredControls);
         encodeParams(activeEngineName, activeScenarioName, activeScenarioControls);

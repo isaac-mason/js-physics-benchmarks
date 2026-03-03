@@ -108,12 +108,16 @@ export function createStats() {
     }
 
     const totalPanel = addPanel('TOTAL', '#fff', '#222');
-    const physicsPanel = addPanel('PHYSICS', '#f80', '#210');
+    const preUpdatePanel = addPanel('PRE', '#fa0', '#210');
+    const stepPanel = addPanel('STEP', '#f80', '#210');
+    const postUpdatePanel = addPanel('POST', '#fb0', '#210');
     const syncPanel = addPanel('SYNC', '#80f', '#102');
     const renderPanel = addPanel('RENDER', '#0f8', '#021');
 
     let beginTime = performance.now();
-    let physicsStart = performance.now();
+    let preUpdateStart = performance.now();
+    let stepStart = performance.now();
+    let postUpdateStart = performance.now();
     let syncStart = performance.now();
     let renderStart = performance.now();
 
@@ -128,12 +132,28 @@ export function createStats() {
             beginTime = performance.now();
         },
 
-        beginPhysics() {
-            physicsStart = performance.now();
+        beginPreUpdate() {
+            preUpdateStart = performance.now();
         },
 
-        endPhysics() {
-            physicsPanel.update(performance.now() - physicsStart, 16);
+        endPreUpdate() {
+            preUpdatePanel.update(performance.now() - preUpdateStart, 16);
+        },
+
+        beginStep() {
+            stepStart = performance.now();
+        },
+
+        endStep() {
+            stepPanel.update(performance.now() - stepStart, 16);
+        },
+
+        beginPostUpdate() {
+            postUpdateStart = performance.now();
+        },
+
+        endPostUpdate() {
+            postUpdatePanel.update(performance.now() - postUpdateStart, 16);
         },
 
         beginSync() {
