@@ -208,8 +208,8 @@ export function createRenderer(container?: HTMLElement): Renderer {
 
             _prevPosition.set(body.prevPosition[0], body.prevPosition[1], body.prevPosition[2]);
             _prevQuaternion.set(body.prevQuaternion[0], body.prevQuaternion[1], body.prevQuaternion[2], body.prevQuaternion[3]);
-            _position.set(body.currPosition[0], body.currPosition[1], body.currPosition[2]);
-            _quaternion.set(body.currQuaternion[0], body.currQuaternion[1], body.currQuaternion[2], body.currQuaternion[3]);
+            _position.set(body.position[0], body.position[1], body.position[2]);
+            _quaternion.set(body.quaternion[0], body.quaternion[1], body.quaternion[2], body.quaternion[3]);
 
             _interpPosition.lerpVectors(_prevPosition, _position, alpha);
             _interpQuaternion.slerpQuaternions(_prevQuaternion, _quaternion, alpha);

@@ -1,6 +1,6 @@
 import type GUI from 'lil-gui';
-import type { Renderer } from '../renderer';
 import type { PhysicsState } from '../api';
+import type { Renderer } from '../renderer';
 
 export type ScenarioControls<Controls> = (gui: GUI) => Controls;
 

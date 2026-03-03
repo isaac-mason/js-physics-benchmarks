@@ -153,18 +153,18 @@ export function setBodyTranslationRotation(state: ImplState, handle: RigidBody, 
     crashcat.rigidBody.setTransform(state.world, handle, position, quaternion, true);
 }
 
-const _closestCollector = crashcat.createClosestCastRayCollector();
-const _castRaySettings = crashcat.createDefaultCastRaySettings();
+const _raycastClosest_closestCollector = crashcat.createClosestCastRayCollector();
+const _raycastClosest_castRaySettings = crashcat.createDefaultCastRaySettings();
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {
-    _closestCollector.reset();
+    _raycastClosest_closestCollector.reset();
     const filter = crashcat.filter.forWorld(state.world);
-    crashcat.castRay(state.world, _closestCollector, _castRaySettings, origin, direction, maxDistance, filter);
-    if (_closestCollector.hit.status !== crashcat.CastRayStatus.COLLIDING) {
+    crashcat.castRay(state.world, _raycastClosest_closestCollector, _raycastClosest_castRaySettings, origin, direction, maxDistance, filter);
+    if (_raycastClosest_closestCollector.hit.status !== crashcat.CastRayStatus.COLLIDING) {
         out.hit = false;
         out.fraction = 0;
         return;
     }
     out.hit = true;
-    out.fraction = _closestCollector.hit.fraction;
+    out.fraction = _raycastClosest_closestCollector.hit.fraction;
 }

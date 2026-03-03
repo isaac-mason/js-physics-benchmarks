@@ -2,7 +2,7 @@ import type { PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '
 
 type PhysicsState = any;
 
-export interface PhysicsImpl {
+export type PhysicsImpl = {
     init(): Promise<void>;
     createWorld(): PhysicsState;
     disposeWorld(world: PhysicsState): void;

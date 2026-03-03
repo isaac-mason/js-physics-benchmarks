@@ -118,9 +118,7 @@ export function setGravity(state: ImplState, x: number, y: number, z: number): v
 }
 
 export function stepSimulation(state: ImplState, dt: number): void {
-    // Use 2 collision steps when running below 55 Hz (matches the official example)
-    const collisionSteps = dt > 1 / 55 ? 2 : 1;
-    state.jolt.Step(dt, collisionSteps);
+    state.jolt.Step(dt, 1);
 }
 
 export function createShape(_state: ImplState, desc: PhysicsShape): Jolt.Shape {
