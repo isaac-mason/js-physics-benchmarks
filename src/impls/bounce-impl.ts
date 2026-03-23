@@ -1,4 +1,4 @@
-import { type Body, type CastRayResult, Ray, World } from '@perplexdotgg/bounce';
+import { type Body, type CastResult, Ray, World } from '@perplexdotgg/bounce';
 import type { PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { MotionType, ShapeType } from '../api';
 
@@ -83,34 +83,25 @@ export function createShape(_state: ImplState, desc: PhysicsShape): PhysicsShape
 }
 
 export function destroyShape(_state: ImplState, _implHandle: PhysicsShape): void {
+    _state.world.destroyShape(_implHandle as any);
     // no-op
 }
 
 export function createRigidBody(state: ImplState, options: RigidBodyOptions, implShape: PhysicsShape): Body {
     const shape = buildBounceShape(state.world, implShape);
-    const position = { x: options.position[0], y: options.position[1], z: options.position[2] };
-    const orientation = options.quaternion
-        ? { x: options.quaternion[0], y: options.quaternion[1], z: options.quaternion[2], w: options.quaternion[3] }
-        : undefined;
+
+    const bodyOptions = {
+        ...options,
+        shape,
+    };
 
     let body: Body;
     if (options.motionType === MotionType.STATIC) {
-        body = state.world.createStaticBody({ shape, position, orientation });
+        body = state.world.createStaticBody(bodyOptions);
     } else if (options.motionType === MotionType.KINEMATIC) {
-        body = state.world.createKinematicBody({ shape, position, orientation });
+        body = state.world.createKinematicBody(bodyOptions);
     } else {
-        body = state.world.createDynamicBody({
-            shape,
-            position,
-            orientation,
-            mass: options.mass ?? 1,
-        });
-    }
-    if (options.friction !== undefined) {
-        body.friction = options.friction;
-    }
-    if (options.restitution !== undefined) {
-        body.restitution = options.restitution;
+        body = state.world.createDynamicBody(bodyOptions);
     }
     return body;
 }
@@ -156,7 +147,6 @@ export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: Body
 
 export function setBodyTranslationRotation(_state: ImplState, handle: Body, position: Vec3, quaternion: Quat): void {
     handle.position.set(position);
-    handle.commitChanges();
     handle.orientation.set(quaternion);
     handle.commitChanges();
     // TODO: fix this, when pos & orientation are set together centerOfMassPosition isn't updated correctly?
@@ -164,13 +154,11 @@ export function setBodyTranslationRotation(_state: ImplState, handle: Body, posi
 }
 
 const _raycastClosest_ray = Ray.create();
-const _raycastClosest_options = { returnClosestOnly: true };
 let _raycastClosest_out: RaycastResult | null = null;
 
-function _raycastClosest_cb(result: CastRayResult): undefined {
+function _raycastClosest_cb(result: CastResult): undefined {
     _raycastClosest_out!.hit = true;
     _raycastClosest_out!.fraction = result.fraction;
-    return undefined;
 }
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {
@@ -182,6 +170,6 @@ export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec
     out.hit = false;
     out.fraction = 0;
     _raycastClosest_out = out;
-    state.world.castRay(_raycastClosest_cb, _raycastClosest_ray, _raycastClosest_options);
+    state.world.castRay(_raycastClosest_cb, _raycastClosest_ray, true);
     _raycastClosest_out = null;
 }

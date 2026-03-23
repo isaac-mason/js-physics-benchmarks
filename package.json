@@ -13,7 +13,7 @@
   "packageManager": "pnpm@8.15.2+sha1.798034f615aa211c6c2ae00010cc20be5fc102ee",
   "dependencies": {
     "@dimforge/rapier3d": "0.19.3",
-    "@perplexdotgg/bounce": "^1.7.0",
+    "@perplexdotgg/bounce": "^1.8.0",
     "cannon-es": "0.20.0",
     "crashcat": "0.0.2",
     "jolt-physics": "1.0.0",
