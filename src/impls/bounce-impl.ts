@@ -149,7 +149,6 @@ export function setBodyTranslationRotation(_state: ImplState, handle: Body, posi
     handle.position.set(position);
     handle.orientation.set(quaternion);
     handle.commitChanges();
-    // TODO: fix this, when pos & orientation are set together centerOfMassPosition isn't updated correctly?
     handle.wakeUp();
 }
 
