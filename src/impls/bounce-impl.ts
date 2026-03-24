@@ -15,6 +15,7 @@ function buildBounceShape(world: World, desc: PhysicsShape) {
                 width: desc.halfExtents[0] * 2,
                 height: desc.halfExtents[1] * 2,
                 depth: desc.halfExtents[2] * 2,
+                convexRadius: desc.convexRadius,
             });
         case ShapeType.SPHERE:
             return world.createSphere({ radius: desc.radius });

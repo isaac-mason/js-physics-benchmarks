@@ -126,7 +126,7 @@ export function createShape(_state: ImplState, desc: PhysicsShape): Jolt.Shape {
     switch (desc.type) {
         case ShapeType.BOX: {
             _vec3.Set(desc.halfExtents[0], desc.halfExtents[1], desc.halfExtents[2]);
-            const settings = new J.BoxShapeSettings(_vec3, 0.05);
+            const settings = new J.BoxShapeSettings(_vec3, desc.convexRadius);
             const result = settings.Create();
             const shape = result.Get();
             shape.AddRef(); // take ownership before releasing the result and settings
