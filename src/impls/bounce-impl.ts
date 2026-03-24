@@ -84,7 +84,6 @@ export function createShape(_state: ImplState, desc: PhysicsShape): PhysicsShape
 
 export function destroyShape(_state: ImplState, _implHandle: PhysicsShape): void {
     _state.world.destroyShape(_implHandle as any);
-    // no-op
 }
 
 export function createRigidBody(state: ImplState, options: RigidBodyOptions, implShape: PhysicsShape): Body {
