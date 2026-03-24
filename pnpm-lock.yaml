@@ -9,8 +9,8 @@ dependencies:
     specifier: 0.19.3
     version: 0.19.3
   '@perplexdotgg/bounce':
-    specifier: ^1.7.0
-    version: 1.7.0
+    specifier: ^1.8.0
+    version: 1.8.0
   cannon-es:
     specifier: 0.20.0
     version: 0.20.0
@@ -429,10 +429,10 @@ packages:
       '@jridgewell/sourcemap-codec': 1.5.5
     dev: true
 
-  /@perplexdotgg/bounce@1.7.0:
-    resolution: {integrity: sha512-WqEFAaNn/jv4ofKiJQg3m3x6q2uUkkjqRuhOcw6f1y4BGowKGZsefQPDwOLValprKqrrxlT/UF6YyeOx2QA3DQ==}
+  /@perplexdotgg/bounce@1.8.0:
+    resolution: {integrity: sha512-UZIuTVGXhxgxMQsF1ekeWAR8c0z3qFNHrEdRIWe7Bmh34tN+RYrMaPmIwONd+WHOA78YosARb13gjKF5bgiT6Q==}
     dependencies:
-      monomorph: 2.3.0
+      monomorph: 2.3.1
     dev: false
 
   /@rollup/plugin-commonjs@29.0.0(rollup@4.59.0):
@@ -1035,8 +1035,8 @@ packages:
     resolution: {integrity: sha512-Vix+QlA1YYT3FwmBBZ+49cE5y/b+pRrcXKqGpS5ouh33d3lSp2PoTpCw19E0cKDFWalembrHnIaZetf27a+W2g==}
     dev: true
 
-  /monomorph@2.3.0:
-    resolution: {integrity: sha512-puqdIVx8C3wrhYch45u5Q3hZm+QbgJSmhcWkck2Kj8W13O+X1optzVW7z4npb8NIrzgCJEN1J6IHytnemJVNwg==}
+  /monomorph@2.3.1:
+    resolution: {integrity: sha512-kACbfiM0x7viZ00Ofgwy9HmElqqqY21w0S45hbH+W6BQUFhvs9mHIAmKEgBKo5hF5w4OUgRtABRgftDDVc5zFw==}
     dev: false
 
   /nanoid@3.3.11:

@@ -1,4 +1,4 @@
-import { type Body, type CastRayResult, Ray, World } from '@perplexdotgg/bounce';
+import { type Body, type CastResult, Ray, World } from '@perplexdotgg/bounce';
 import type { PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { MotionType, ShapeType } from '../api';
 
@@ -156,18 +156,15 @@ export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: Body
 
 export function setBodyTranslationRotation(_state: ImplState, handle: Body, position: Vec3, quaternion: Quat): void {
     handle.position.set(position);
-    handle.commitChanges();
     handle.orientation.set(quaternion);
     handle.commitChanges();
-    // TODO: fix this, when pos & orientation are set together centerOfMassPosition isn't updated correctly?
     handle.wakeUp();
 }
 
 const _raycastClosest_ray = Ray.create();
-const _raycastClosest_options = { returnClosestOnly: true };
 let _raycastClosest_out: RaycastResult | null = null;
 
-function _raycastClosest_cb(result: CastRayResult): undefined {
+function _raycastClosest_cb(result: CastResult): undefined {
     _raycastClosest_out!.hit = true;
     _raycastClosest_out!.fraction = result.fraction;
     return undefined;
@@ -182,6 +179,6 @@ export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec
     out.hit = false;
     out.fraction = 0;
     _raycastClosest_out = out;
-    state.world.castRay(_raycastClosest_cb, _raycastClosest_ray, _raycastClosest_options);
+    state.world.castRay(_raycastClosest_cb, _raycastClosest_ray, true, undefined, undefined);
     _raycastClosest_out = null;
 }
