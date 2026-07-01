@@ -1,8 +1,8 @@
 {
   "meta": {
-    "measuredAt": "2026-03-24T00:21:10.150Z",
+    "measuredAt": "2026-06-03T23:32:35.540Z",
     "versions": {
-      "crashcat": "0.0.2",
+      "crashcat": "0.0.4",
       "rapier": "0.19.3",
       "jolt": "1.0.0",
       "cannon": "0.20.0",
@@ -14,17 +14,17 @@
     "crashcat": {
       "name": "crashcat",
       "js": {
-        "raw": 744057,
-        "minified": 180986,
-        "minifiedGzip": 51109
+        "raw": 564930,
+        "minified": 187079,
+        "minifiedGzip": 46233
       }
     },
     "rapier": {
       "name": "rapier",
       "js": {
-        "raw": 427184,
-        "minified": 126829,
-        "minifiedGzip": 21083
+        "raw": 460536,
+        "minified": 133619,
+        "minifiedGzip": 22598
       },
       "wasm": {
         "total": 1570176,
@@ -40,9 +40,9 @@
     "jolt": {
       "name": "jolt",
       "js": {
-        "raw": 933289,
-        "minified": 943474,
-        "minifiedGzip": 132695
+        "raw": 934781,
+        "minified": 944245,
+        "minifiedGzip": 132952
       },
       "wasm": {
         "total": 1993586,
@@ -58,25 +58,33 @@
     "cannon": {
       "name": "cannon",
       "js": {
-        "raw": 230783,
-        "minified": 80865,
-        "minifiedGzip": 22872
+        "raw": 230957,
+        "minified": 80976,
+        "minifiedGzip": 22928
       }
     },
     "bounce": {
       "name": "bounce",
       "js": {
-        "raw": 613570,
-        "minified": 311442,
-        "minifiedGzip": 71847
+        "raw": 613759,
+        "minified": 311569,
+        "minifiedGzip": 71904
+      }
+    },
+    "meep": {
+      "name": "meep",
+      "js": {
+        "raw": 1111363,
+        "minified": 261009,
+        "minifiedGzip": 85954
       }
     },
     "ammo": {
       "name": "ammo",
       "js": {
-        "raw": 684118,
-        "minified": 441949,
-        "minifiedGzip": 50227
+        "raw": 685014,
+        "minified": 442497,
+        "minifiedGzip": 50459
       },
       "wasm": {
         "total": 747690,

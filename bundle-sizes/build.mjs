@@ -61,6 +61,10 @@ const ENGINES = [
     entry: 'entries/bounce.ts',
   },
   {
+    name: 'meep',
+    entry: 'entries/meep.ts',
+  },
+  {
     name: 'ammo',
     entry: 'entries/ammo.ts',
     wasm: [

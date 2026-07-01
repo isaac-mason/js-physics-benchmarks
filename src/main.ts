@@ -8,6 +8,7 @@ import * as cannon from './impls/cannon-impl';
 import * as crashcat from './impls/crashcat-impl';
 import type { PhysicsImpl } from './impls/impl';
 import * as jolt from './impls/jolt-impl';
+import * as meep from './impls/meep-impl';
 import * as rapier from './impls/rapier-impl';
 import { createRenderer } from './renderer';
 import { createContactListenersScenario } from './scenarios/contact-listeners';
@@ -32,6 +33,7 @@ document.getElementById('stats-container')!.appendChild(stats.dom);
 const ENGINES = [
     { id: 'crashcat', label: 'crashcat',  tag: 'js',   repoUrl: 'https://github.com/isaac-mason/crashcat' },
     { id: 'bounce',   label: 'bounce',    tag: 'js',   repoUrl: 'https://codeberg.org/perplexdotgg/bounce' },
+    { id: 'meep',     label: 'meep',      tag: 'js',   repoUrl: 'https://meep.company-named.com/' },
     { id: 'cannon',   label: 'cannon-es', tag: 'js',   repoUrl: 'https://github.com/pmndrs/cannon-es' },
     { id: 'rapier',   label: 'rapier',    tag: 'wasm', repoUrl: 'https://github.com/dimforge/rapier.js' },
     { id: 'jolt',     label: 'jolt',      tag: 'wasm', repoUrl: 'https://github.com/jrouwe/JoltPhysics.js' },
@@ -217,6 +219,8 @@ async function startEngine(name: string): Promise<void> {
         impl = cannon;
     } else if (name === 'bounce') {
         impl = bounce;
+    } else if (name === 'meep') {
+        impl = meep;
     } else if (name === 'ammo') {
         impl = ammo;
     } else {
@@ -341,7 +345,7 @@ async function init(): Promise<void> {
     for (const b of engineButtons) b.classList.toggle('active', b.dataset.engine === engine);
     for (const b of scenarioButtons) b.classList.toggle('active', b.dataset.scenario === scenario);
 
-    await Promise.all([crashcat.init(), rapier.init(), jolt.init(), cannon.init(), bounce.init(), ammo.init()]);
+    await Promise.all([crashcat.init(), rapier.init(), jolt.init(), cannon.init(), bounce.init(), meep.init(), ammo.init()]);
     await startEngine(engine);
 
     if (restoredControls) {

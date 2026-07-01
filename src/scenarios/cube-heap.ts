@@ -79,6 +79,7 @@ export const createCubeHeapScenario = () => {
             const newX = randomInRange(-SPAWN_AREA, SPAWN_AREA);
             const newZ = randomInRange(-SPAWN_AREA, SPAWN_AREA);
             api.setBodyTranslationRotation(physics, handle, [newX, SPAWN_HEIGHT, newZ], [0, 0, 0, 1]);
+            api.setBodyLinearVelocity(physics, handle, [0, 0, 0]);
             state.index = (state.index + 1) % state.bodyHandles.length;
         },
     });

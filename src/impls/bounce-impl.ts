@@ -152,7 +152,13 @@ export function setBodyTranslationRotation(_state: ImplState, handle: Body, posi
     handle.wakeUp();
 }
 
-const _raycastClosest_ray = Ray.create();
+// Ray.create's input is required by the derived monomorph type, even though
+// every field is overwritten by raycastClosest on each call.
+const _raycastClosest_ray = Ray.create({
+    origin: { x: 0, y: 0, z: 0 },
+    direction: { x: 0, y: 1, z: 0 },
+    length: 0,
+});
 let _raycastClosest_out: RaycastResult | null = null;
 
 function _raycastClosest_cb(result: CastResult): undefined {
