@@ -15,6 +15,7 @@
     "@dimforge/rapier3d": "0.19.3",
     "@perplexdotgg/bounce": "^1.8.0",
     "@woosh/meep-engine": "^2.153.0",
+    "box3d.js": "^0.0.1",
     "cannon-es": "0.20.0",
     "crashcat": "0.0.2",
     "jolt-physics": "1.0.0",

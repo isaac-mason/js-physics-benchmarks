@@ -4,6 +4,7 @@ import type { PhysicsState } from './api';
 import { createPhysicsState, snapshot } from './api';
 import * as ammo from './impls/ammo-impl';
 import * as bounce from './impls/bounce-impl';
+import * as box3d from './impls/box3d-impl';
 import * as cannon from './impls/cannon-impl';
 import * as crashcat from './impls/crashcat-impl';
 import type { PhysicsImpl } from './impls/impl';
@@ -35,6 +36,7 @@ const ENGINES = [
     { id: 'bounce',   label: 'bounce',    tag: 'js',   repoUrl: 'https://codeberg.org/perplexdotgg/bounce' },
     { id: 'meep',     label: 'meep',      tag: 'js',   repoUrl: 'https://meep.company-named.com/' },
     { id: 'cannon',   label: 'cannon-es', tag: 'js',   repoUrl: 'https://github.com/pmndrs/cannon-es' },
+    { id: 'box3d',    label: 'box3d.js',  tag: 'wasm', repoUrl: 'https://github.com/isaac-mason/box3d.js' },
     { id: 'rapier',   label: 'rapier',    tag: 'wasm', repoUrl: 'https://github.com/dimforge/rapier.js' },
     { id: 'jolt',     label: 'jolt',      tag: 'wasm', repoUrl: 'https://github.com/jrouwe/JoltPhysics.js' },
     { id: 'ammo',     label: 'ammo.js',   tag: 'wasm', repoUrl: 'https://github.com/kripken/ammo.js' },
@@ -209,7 +211,9 @@ async function startEngine(name: string): Promise<void> {
         impl.disposeWorld(physics.world);
     }
 
-    if (name === 'crashcat') {
+    if (name === 'box3d') {
+        impl = box3d;
+    } else if (name === 'crashcat') {
         impl = crashcat;
     } else if (name === 'rapier') {
         impl = rapier;
@@ -345,7 +349,7 @@ async function init(): Promise<void> {
     for (const b of engineButtons) b.classList.toggle('active', b.dataset.engine === engine);
     for (const b of scenarioButtons) b.classList.toggle('active', b.dataset.scenario === scenario);
 
-    await Promise.all([crashcat.init(), rapier.init(), jolt.init(), cannon.init(), bounce.init(), meep.init(), ammo.init()]);
+    await Promise.all([box3d.init(), crashcat.init(), rapier.init(), jolt.init(), cannon.init(), bounce.init(), meep.init(), ammo.init()]);
     await startEngine(engine);
 
     if (restoredControls) {

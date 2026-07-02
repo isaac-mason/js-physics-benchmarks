@@ -14,6 +14,9 @@ dependencies:
   '@woosh/meep-engine':
     specifier: ^2.153.0
     version: 2.153.0(three@0.183.2)
+  box3d.js:
+    specifier: ^0.0.1
+    version: 0.0.1
   cannon-es:
     specifier: 0.20.0
     version: 0.20.0
@@ -907,6 +910,10 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
     dev: true
+
+  /box3d.js@0.0.1:
+    resolution: {integrity: sha512-c9OayHPZP2t2Mh3ak6GF1lbj3bKEJxIrndwYoWbuQWeGqU351/npxLpbll7Rt5Qt+Czz1nUL0ewb9PpIFuL08A==}
+    dev: false
 
   /buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}

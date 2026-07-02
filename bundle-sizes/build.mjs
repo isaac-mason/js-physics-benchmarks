@@ -38,6 +38,13 @@ const ENGINES = [
     // No WASM
   },
   {
+    name: 'box3d',
+    entry: 'entries/box3d.ts',
+    wasm: [
+      'node_modules/box3d.js/dist/box3d.wasm',
+    ],
+  },
+  {
     name: 'rapier',
     entry: 'entries/rapier.ts',
     wasm: [
@@ -241,6 +248,8 @@ async function main() {
     jolt: versionFor('jolt-physics'),
     cannon: versionFor('cannon-es'),
     bounce: versionFor('@perplexdotgg/bounce'),
+    meep: versionFor('@woosh/meep-engine'),
+    box3d: versionFor('box3d.js'),
     ammo: '1ed8b58',
   }
 
