@@ -401,6 +401,7 @@ function animate(): void {
     accumulator += frameTime;
 
     let stepped = 0;
+    let snapshotMs = 0; // engine -> render-state readback; counted under sync, not step
     while (accumulator >= PHYSICS_DT && stepped < MAX_SUBSTEPS) {
         if (activeScenario && activeScenarioState && physics) {
             stats.beginPreUpdate();
@@ -410,8 +411,11 @@ function animate(): void {
         if (physics) {
             stats.beginStep();
             physics.impl.stepSimulation(physics.world, PHYSICS_DT);
+            stats.endStep(); // step = the physics solve only
+
+            const snapStart = performance.now();
             snapshot(physics);
-            stats.endStep();
+            snapshotMs += performance.now() - snapStart;
         }
         stats.beginPostUpdate();
         if (activeScenario?.postUpdate && activeScenarioState && physics) {
@@ -422,11 +426,12 @@ function animate(): void {
         stepped++;
     }
 
+    // Sync = per-substep snapshot readback + this frame's interpolation into three.js.
     stats.beginSync();
     if (physics) {
         currentRenderer.update(physics, accumulator / PHYSICS_DT);
     }
-    stats.endSync();
+    stats.endSync(snapshotMs);
 
     stats.beginRender();
     currentRenderer.controls.update();

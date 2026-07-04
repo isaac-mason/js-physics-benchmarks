@@ -201,8 +201,8 @@ export function createStats() {
             syncStart = performance.now();
         },
 
-        endSync() {
-            syncPanel.update(performance.now() - syncStart, BUDGET_MS);
+        endSync(extraMs = 0) {
+            syncPanel.update(performance.now() - syncStart + extraMs, BUDGET_MS);
         },
 
         beginRender() {
