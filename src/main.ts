@@ -23,7 +23,6 @@ import { createFrictionRampScenario } from './scenarios/friction-ramp';
 import { createHighMassRatioScenario } from './scenarios/high-mass-ratio';
 import { createRestitutionScenario } from './scenarios/restitution';
 import { createConvexHullsScenario } from './scenarios/convex-hulls';
-import { createConvexStackScenario } from './scenarios/convex-stack';
 import { createCubeHeapScenario } from './scenarios/cube-heap';
 import { createDominoesScenario } from './scenarios/dominoes';
 import { createInitialPenetrationScenario } from './scenarios/initial-penetration';
@@ -67,7 +66,6 @@ const ENGINES = [
 const SCENARIOS = [
     { id: 'cube-heap',          label: 'Cube Heap',          category: 'Benchmark', create: createCubeHeapScenario },
     { id: 'convex-hulls',       label: 'Convex Hull Heap',   category: 'Benchmark', create: createConvexHullsScenario },
-    { id: 'candy-cups',         label: 'Candy Cups',         category: 'Benchmark', create: createCandyCupsScenario },
     { id: 'box-container',      label: 'Box Container',      category: 'Benchmark', create: createBoxContainerScenario },
     { id: 'many-box-stacks',    label: 'Many Box Stacks',    category: 'Benchmark', create: createManyBoxStacksScenario },
     { id: 'sleeping-pile',      label: 'Sleeping Pile',      category: 'Benchmark', create: createSleepingPileScenario },
@@ -81,7 +79,7 @@ const SCENARIOS = [
     { id: 'stable-stacking',    label: 'Stacking Stability', category: 'Stacking', create: createStableStackingScenario },
     { id: 'jenga',              label: 'Jenga Stack',        category: 'Stacking', create: createJengaScenario },
     { id: 'stacked-spheres',    label: 'Stacked Spheres',    category: 'Stacking', create: createStackedSpheresScenario },
-    { id: 'convex-stack',       label: 'Convex Stack',       category: 'Stacking', create: createConvexStackScenario },
+    { id: 'candy-cups',         label: 'Candy Cups',         category: 'Stacking', create: createCandyCupsScenario },
     { id: 'arch',               label: 'Arch',               category: 'Stacking', create: createArchScenario },
     { id: 'card-house',         label: 'Card House',         category: 'Stacking', create: createCardHouseScenario },
 
@@ -456,13 +454,13 @@ function closeMenus(): void {
 }
 scenarioTrigger.addEventListener('click', (e) => {
     e.stopPropagation();
-    const willOpen = scenarioPanel.hidden;
+    const willOpen = scenarioPanel.hidden !== false;
     closeMenus();
     setMenuOpen(scenarioTrigger, scenarioPanel, willOpen);
 });
 engineTrigger.addEventListener('click', (e) => {
     e.stopPropagation();
-    const willOpen = enginePanel.hidden;
+    const willOpen = enginePanel.hidden !== false;
     closeMenus();
     setMenuOpen(engineTrigger, enginePanel, willOpen);
 });
