@@ -245,6 +245,12 @@ export function setBodyLinearVelocity(state: ImplState, handle: AmmoBodyHandle, 
     handle.body.activate(true);
 }
 
+export function applyImpulse(state: ImplState, handle: AmmoBodyHandle, impulse: Vec3): void {
+    state._tmpVec.setValue(impulse[0], impulse[1], impulse[2]);
+    handle.body.applyCentralImpulse(state._tmpVec);
+    handle.body.activate(true);
+}
+
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: AmmoBodyHandle): void {
     const v = handle.body.getLinearVelocity();
     out[0] = v.x();

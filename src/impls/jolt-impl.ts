@@ -266,6 +266,12 @@ export function setBodyLinearVelocity(state: ImplState, handle: Jolt.Body, veloc
     state.bodyInterface.SetLinearVelocity(handle.GetID(), _vec3);
 }
 
+export function applyImpulse(state: ImplState, handle: Jolt.Body, impulse: Vec3): void {
+    _vec3.Set(impulse[0], impulse[1], impulse[2]);
+    state.bodyInterface.ActivateBody(handle.GetID());
+    state.bodyInterface.AddImpulse(handle.GetID(), _vec3);
+}
+
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: Jolt.Body): void {
     const vel = handle.GetLinearVelocity();
     out[0] = vel.GetX();

@@ -189,6 +189,10 @@ export function setBodyLinearVelocity(state: ImplState, handle: b3BodyId, veloci
     void state;
 }
 
+export function applyImpulse(_state: ImplState, handle: b3BodyId, impulse: Vec3): void {
+    b3.b3Body_ApplyLinearImpulseToCenter(handle, { x: impulse[0], y: impulse[1], z: impulse[2] }, true);
+}
+
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: b3BodyId): void {
     const v = b3.b3Body_GetLinearVelocity(handle);
     out[0] = v.x;

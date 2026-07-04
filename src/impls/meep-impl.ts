@@ -265,6 +265,10 @@ export function setBodyLinearVelocity(state: ImplState, handle: BodyHandle, velo
     state.physics.setLinearVelocity(handle.rb, { x: velocity[0], y: velocity[1], z: velocity[2] });
 }
 
+export function applyImpulse(state: ImplState, handle: BodyHandle, impulse: Vec3): void {
+    state.physics.applyImpulse(handle.rb, { x: impulse[0], y: impulse[1], z: impulse[2] });
+}
+
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: BodyHandle): void {
     out[0] = handle.rb.linearVelocity.x;
     out[1] = handle.rb.linearVelocity.y;

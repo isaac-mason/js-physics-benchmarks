@@ -211,6 +211,12 @@ export function setBodyLinearVelocity(state: PhysicsState, bodyId: number, veloc
     state.impl.setBodyLinearVelocity(state.world, body.handle, velocity);
 }
 
+export function applyImpulse(state: PhysicsState, bodyId: number, impulse: Vec3): void {
+    const body = state.bodies.get(bodyId);
+    if (!body) return;
+    state.impl.applyImpulse(state.world, body.handle, impulse);
+}
+
 export function getBodyLinearVelocity(out: Vec3, state: PhysicsState, bodyId: number): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;

@@ -142,6 +142,10 @@ export function setBodyLinearVelocity(state: ImplState, handle: RigidBody, veloc
     crashcat.rigidBody.setLinearVelocity(state.world, handle, velocity);
 }
 
+export function applyImpulse(state: ImplState, handle: RigidBody, impulse: Vec3): void {
+    crashcat.rigidBody.addImpulse(state.world, handle, impulse);
+}
+
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: RigidBody): void {
     const vel = handle.motionProperties.linearVelocity;
     out[0] = vel[0];

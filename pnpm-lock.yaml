@@ -22,7 +22,7 @@ dependencies:
     version: 0.20.0
   crashcat:
     specifier: 0.0.2
-    version: 0.0.2(mathcat@0.0.11)(three@0.183.2)
+    version: link:../crashcat
   jolt-physics:
     specifier: 1.0.0
     version: 1.0.0
@@ -930,19 +930,6 @@ packages:
   /commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
-
-  /crashcat@0.0.2(mathcat@0.0.11)(three@0.183.2):
-    resolution: {integrity: sha512-yWjguws2C+bJbPFdlGO7Z/qx5s5m5XO3IzImu8F2h1AjEjEYjYUM3C8d0XkfwK6XJ2Y4E3n53MBGB7B+O7enTQ==}
-    peerDependencies:
-      mathcat: 0.0.11
-      three: '>=0.182.0'
-    peerDependenciesMeta:
-      three:
-        optional: true
-    dependencies:
-      mathcat: 0.0.11
-      three: 0.183.2
-    dev: false
 
   /deepmerge@4.3.1:
     resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}

@@ -7,20 +7,31 @@
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
-    <div id="title-top-left">
-      <div id="title">js-physics-benchmarks</div>
-      <a id="github-link" href="https://github.com/isaac-mason/js-physics-benchmarks" target="_blank" rel="noopener">isaac-mason/js-physics-benchmarks</a>
+    <div id="topbar">
+      <div class="topbar-left">
+        <a class="brand-mark" href="https://github.com/isaac-mason/js-physics-benchmarks" target="_blank" rel="noopener">js-physics-benchmarks</a>
+        <div class="menu" id="engine-menu">
+          <button class="menu-trigger" id="engine-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+            <span class="menu-value" id="engine-current"></span>
+            <span class="menu-caret">▾</span>
+          </button>
+          <div class="menu-panel" id="engine-panel" hidden></div>
+        </div>
+        <div class="menu" id="scenario-menu">
+          <button class="menu-trigger" id="scenario-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+            <span class="menu-value" id="scenario-current"></span>
+            <span class="menu-caret">▾</span>
+          </button>
+          <div class="menu-panel" id="scenario-panel" hidden></div>
+        </div>
+      </div>
     </div>
+
     <div id="top-right-panel">
       <div id="stats-container"></div>
       <div id="scenario-gui"></div>
     </div>
-    <div id="controls-bottom-left">
-      <div class="control-label">scenarios</div>
-      <div class="scenario-buttons" id="scenario-buttons"></div>
-      <div class="control-label" style="margin-top: 10px;">engines</div>
-      <div class="engine-buttons" id="engine-buttons"></div>
-    </div>
+
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>

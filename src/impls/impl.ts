@@ -18,6 +18,7 @@ export type PhysicsImpl = {
     setBodyQuaternion(world: PhysicsState, handle: any, quaternion: Quat): void;
     setBodyLinearVelocity(world: PhysicsState, handle: any, velocity: Vec3): void;
     getBodyLinearVelocity(out: Vec3, world: PhysicsState, handle: any): void;
+    applyImpulse(world: PhysicsState, handle: any, impulse: Vec3): void;
     setBodyTranslationRotation(world: PhysicsState, handle: any, position: Vec3, quaternion: Quat): void;
     onContactAdded(world: PhysicsState, onContact: (handleA: any, handleB: any) => void): void;
     disposeContactListener(world: PhysicsState): void;

@@ -151,6 +151,14 @@ export function setBodyLinearVelocity(_state: ImplState, handle: CANNON.Body, ve
     handle.velocity.set(velocity[0], velocity[1], velocity[2]);
 }
 
+const _cannonImpulse = new CANNON.Vec3();
+
+export function applyImpulse(_state: ImplState, handle: CANNON.Body, impulse: Vec3): void {
+    _cannonImpulse.set(impulse[0], impulse[1], impulse[2]);
+    handle.applyImpulse(_cannonImpulse); // relativePoint defaults to the centre of mass
+    handle.wakeUp();
+}
+
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: CANNON.Body): void {
     out[0] = handle.velocity.x;
     out[1] = handle.velocity.y;

@@ -12,11 +12,32 @@ import * as jolt from './impls/jolt-impl';
 import * as meep from './impls/meep-impl';
 import * as rapier from './impls/rapier-impl';
 import { createRenderer } from './renderer';
+import { createArchScenario } from './scenarios/arch';
+import { createBoxContainerScenario } from './scenarios/box-container';
+import { createCandyCupsScenario } from './scenarios/candy-cups';
+import { createCardHouseScenario } from './scenarios/card-house';
 import { createContactListenersScenario } from './scenarios/contact-listeners';
+import { createDestructionScenario } from './scenarios/destruction';
+import { createExplosionScenario } from './scenarios/explosion';
+import { createFrictionRampScenario } from './scenarios/friction-ramp';
+import { createHighMassRatioScenario } from './scenarios/high-mass-ratio';
+import { createRestitutionScenario } from './scenarios/restitution';
 import { createConvexHullsScenario } from './scenarios/convex-hulls';
+import { createConvexStackScenario } from './scenarios/convex-stack';
 import { createCubeHeapScenario } from './scenarios/cube-heap';
+import { createDominoesScenario } from './scenarios/dominoes';
+import { createInitialPenetrationScenario } from './scenarios/initial-penetration';
+import { createJengaScenario } from './scenarios/jenga';
+import { createManyBoxStacksScenario } from './scenarios/many-box-stacks';
 import { createPyramidScenario } from './scenarios/pyramid';
 import { createRaycastsScenario } from './scenarios/raycasts';
+import { createRayCurtainScenario } from './scenarios/ray-curtain';
+import { createSeaOfStaticBoxesScenario } from './scenarios/sea-of-static-boxes';
+import { createSleepingPileScenario } from './scenarios/sleeping-pile';
+import { createStackedSpheresScenario } from './scenarios/stacked-spheres';
+import { createTenThousandScenario } from './scenarios/ten-thousand';
+import { createTumblerScenario } from './scenarios/tumbler';
+import { createWindScenario } from './scenarios/wind';
 import { createStableStackingScenario } from './scenarios/stable-stacking';
 import type { Scenario } from './scenarios/types';
 import { createStats } from './stats';
@@ -44,12 +65,37 @@ const ENGINES = [
 
 // biome-ignore format: pretty
 const SCENARIOS = [
-    { id: 'cube-heap',          label: 'Cube Heap',          create: createCubeHeapScenario },
-    { id: 'convex-hulls',       label: 'Convex Hull Heap',   create: createConvexHullsScenario },
-    { id: 'contact-listeners',  label: 'Contact Listeners',  create: createContactListenersScenario },
-    { id: 'pyramid',            label: 'Pyramid',            create: createPyramidScenario },
-    { id: 'stable-stacking',    label: 'Stacking Stability', create: createStableStackingScenario },
-    { id: 'raycasts',           label: 'Raycasts',           create: createRaycastsScenario },
+    { id: 'cube-heap',          label: 'Cube Heap',          category: 'Benchmark', create: createCubeHeapScenario },
+    { id: 'convex-hulls',       label: 'Convex Hull Heap',   category: 'Benchmark', create: createConvexHullsScenario },
+    { id: 'candy-cups',         label: 'Candy Cups',         category: 'Benchmark', create: createCandyCupsScenario },
+    { id: 'box-container',      label: 'Box Container',      category: 'Benchmark', create: createBoxContainerScenario },
+    { id: 'many-box-stacks',    label: 'Many Box Stacks',    category: 'Benchmark', create: createManyBoxStacksScenario },
+    { id: 'sleeping-pile',      label: 'Sleeping Pile',      category: 'Benchmark', create: createSleepingPileScenario },
+    { id: 'explosion',          label: 'Explosion',          category: 'Benchmark', create: createExplosionScenario },
+    { id: 'destruction',        label: 'Destruction',        category: 'Benchmark', create: createDestructionScenario },
+    { id: 'ten-thousand',       label: 'Ten Thousand',       category: 'Benchmark', create: createTenThousandScenario },
+    { id: 'tumbler',            label: 'Tumbler',            category: 'Benchmark', create: createTumblerScenario },
+    { id: 'wind',               label: 'Wind',               category: 'Benchmark', create: createWindScenario },
+
+    { id: 'pyramid',            label: 'Pyramid',            category: 'Stacking', create: createPyramidScenario },
+    { id: 'stable-stacking',    label: 'Stacking Stability', category: 'Stacking', create: createStableStackingScenario },
+    { id: 'jenga',              label: 'Jenga Stack',        category: 'Stacking', create: createJengaScenario },
+    { id: 'stacked-spheres',    label: 'Stacked Spheres',    category: 'Stacking', create: createStackedSpheresScenario },
+    { id: 'convex-stack',       label: 'Convex Stack',       category: 'Stacking', create: createConvexStackScenario },
+    { id: 'arch',               label: 'Arch',               category: 'Stacking', create: createArchScenario },
+    { id: 'card-house',         label: 'Card House',         category: 'Stacking', create: createCardHouseScenario },
+
+    { id: 'restitution',        label: 'Restitution',        category: 'Behavior', create: createRestitutionScenario },
+    { id: 'friction-ramp',      label: 'Friction Ramp',      category: 'Behavior', create: createFrictionRampScenario },
+    { id: 'high-mass-ratio',    label: 'High Mass Ratio',    category: 'Behavior', create: createHighMassRatioScenario },
+    { id: 'initial-penetration', label: 'Initial Penetration', category: 'Behavior', create: createInitialPenetrationScenario },
+    { id: 'dominoes',           label: 'Dominoes',           category: 'Behavior', create: createDominoesScenario },
+
+    { id: 'raycasts',           label: 'Raycasts',           category: 'Query', create: createRaycastsScenario },
+    { id: 'ray-curtain',        label: 'Ray Curtain',        category: 'Query', create: createRayCurtainScenario },
+    { id: 'sea-of-static-boxes', label: 'Sea of Static Boxes', category: 'Query', create: createSeaOfStaticBoxesScenario },
+
+    { id: 'contact-listeners',  label: 'Contact Listeners',  category: 'Events', create: createContactListenersScenario },
 ]
 
 function fmtKb(bytes: number): string {
@@ -112,71 +158,136 @@ function applyRestoredControls(controls: Record<string, unknown>): void {
     for (const c of activeScenarioGui.controllersRecursive()) c.updateDisplay();
 }
 
-const engineButtonsContainer = document.getElementById('engine-buttons')!;
-ENGINES.forEach(({ id, label, tag, repoUrl }) => {
+// --- per-engine bundle sizes, shared by the popover table ---
+type EngineSizes = {
+    version: string;
+    jsMin: number | null;
+    jsMinGz: number | null;
+    wasmRaw: number | null;
+    wasmGzip: number | null;
+    totalMin: number | null;
+    totalMinGz: number | null;
+};
+
+function engineSizes(id: string): EngineSizes {
     const sizes = bundleSizes.results[id as keyof typeof bundleSizes.results];
     const version = bundleSizes.meta.versions[id as keyof typeof bundleSizes.meta.versions];
-
     const jsOk = sizes && 'js' in sizes;
-    const wasmOk = sizes && 'wasm' in sizes && sizes.wasm;
+    const wasmOk = sizes && 'wasm' in sizes && (sizes as any).wasm;
     const jsMin = jsOk ? (sizes as any).js.minified : null;
     const jsMinGz = jsOk ? (sizes as any).js.minifiedGzip : null;
     const wasmRaw = wasmOk ? (sizes as any).wasm.total : null;
     const wasmGzip = wasmOk ? (sizes as any).wasm.totalGzip : null;
-
     const totalMin = jsMin != null ? jsMin + (wasmRaw ?? 0) : null;
     const totalMinGz = jsMinGz != null ? jsMinGz + (wasmGzip ?? 0) : null;
+    return { version, jsMin, jsMinGz, wasmRaw, wasmGzip, totalMin, totalMinGz };
+}
 
-    const wasmCols = wasmOk
-        ? `
+const fmtOrDash = (b: number | null): string => (b != null ? fmtKb(b) : '—');
+
+const scenarioLabel = (id: string): string => SCENARIOS.find((s) => s.id === id)?.label ?? id;
+const engineLabelOf = (id: string): string => ENGINES.find((e) => e.id === id)?.label ?? id;
+
+// --- scenario menu: collapsible category sections ---
+const scenarioPanel = document.getElementById('scenario-panel')!;
+const scenarioCurrent = document.getElementById('scenario-current')!;
+{
+    const categories: string[] = [];
+    for (const s of SCENARIOS) if (!categories.includes(s.category)) categories.push(s.category);
+
+    for (const category of categories) {
+        const section = document.createElement('div');
+        section.className = 'scenario-cat';
+        section.dataset.category = category;
+
+        const header = document.createElement('div');
+        header.className = 'menu-cat-header';
+        header.textContent = category;
+        section.appendChild(header);
+
+        const items = document.createElement('div');
+        items.className = 'scenario-cat-items';
+        for (const s of SCENARIOS.filter((x) => x.category === category)) {
+            const btn = document.createElement('button');
+            btn.className = 'scenario-item';
+            btn.type = 'button';
+            btn.dataset.scenario = s.id;
+            btn.textContent = s.label;
+            items.appendChild(btn);
+        }
+        section.appendChild(items);
+        scenarioPanel.appendChild(section);
+    }
+}
+
+// --- engine menu: wrapped tiles, one per library (whole tile selects) ---
+const enginePanel = document.getElementById('engine-panel')!;
+const engineCurrent = document.getElementById('engine-current')!;
+{
+    const engineTile = (engine: (typeof ENGINES)[number]): string => {
+        const { id, label, tag, repoUrl } = engine;
+        const s = engineSizes(id);
+        // The name is NOT a link — the whole tile selects the engine. The repo
+        // opens only from the small ↗ icon, so a normal click can't misfire.
+        const wasmCols =
+            s.wasmGzip != null
+                ? `
             <div class="card-col-divider"></div>
             <div class="card-col">
                 <div class="card-col-label">WASM</div>
-                <div class="card-col-stat"><span class="card-stat-label">raw</span><span class="card-stat-value">${wasmRaw != null ? fmtKb(wasmRaw) : '—'}</span></div>
-                <div class="card-col-stat"><span class="card-stat-label">gz</span><span class="card-stat-value">${wasmGzip != null ? fmtKb(wasmGzip) : '—'}</span></div>
+                <div class="card-col-stat"><span class="card-stat-label">raw</span><span class="card-stat-value">${fmtOrDash(s.wasmRaw)}</span></div>
+                <div class="card-col-stat"><span class="card-stat-label">gz</span><span class="card-stat-value">${fmtOrDash(s.wasmGzip)}</span></div>
             </div>`
-        : '';
-
-    const btn = document.createElement('button');
-    btn.className = `engine-btn${id === 'crashcat' ? ' active' : ''}`;
-    btn.dataset.engine = id;
-    btn.innerHTML = `
-        <div class="card-header">
-            <a class="card-name" href="${repoUrl}" target="_blank" rel="noopener noreferrer">${label}</a>
-            <span class="engine-tag tag-${tag}">${tag}</span>
-        </div>
-        <div class="card-version">v${version}</div>
-        <div class="card-cols">
-            <div class="card-col">
-                <div class="card-col-label">JS</div>
-                <div class="card-col-stat"><span class="card-stat-label">min</span><span class="card-stat-value">${jsMin != null ? fmtKb(jsMin) : '—'}</span></div>
-                <div class="card-col-stat"><span class="card-stat-label">min+gz</span><span class="card-stat-value">${jsMinGz != null ? fmtKb(jsMinGz) : '—'}</span></div>
+                : '';
+        return `<button class="engine-tile" type="button" data-engine="${id}">
+            <div class="card-header">
+                <span class="card-name">${label}</span>
+                <span class="engine-tag tag-${tag}">${tag}</span>
+                <a class="tile-repo" href="${repoUrl}" target="_blank" rel="noopener noreferrer" title="Open repository" aria-label="Open ${label} repository">↗</a>
             </div>
-            ${wasmCols}
-        </div>
-        <div class="card-totals">
-            <div class="card-total-stat"><span class="card-stat-label">total min</span><span class="card-stat-value">${totalMin != null ? fmtKb(totalMin) : '—'}</span></div>
-            <div class="card-total-stat"><span class="card-stat-label">total min+gz</span><span class="card-stat-value card-stat-value--highlight">${totalMinGz != null ? fmtKb(totalMinGz) : '—'}</span></div>
-        </div>
-    `;
-    engineButtonsContainer.appendChild(btn);
+            <div class="card-version">v${s.version}</div>
+            <div class="card-cols">
+                <div class="card-col">
+                    <div class="card-col-label">JS</div>
+                    <div class="card-col-stat"><span class="card-stat-label">min</span><span class="card-stat-value">${fmtOrDash(s.jsMin)}</span></div>
+                    <div class="card-col-stat"><span class="card-stat-label">min+gz</span><span class="card-stat-value">${fmtOrDash(s.jsMinGz)}</span></div>
+                </div>
+                ${wasmCols}
+            </div>
+            <div class="card-totals">
+                <div class="card-total-stat"><span class="card-stat-label">total min</span><span class="card-stat-value">${fmtOrDash(s.totalMin)}</span></div>
+                <div class="card-total-stat"><span class="card-stat-label">total min+gz</span><span class="card-stat-value card-stat-value--highlight">${fmtOrDash(s.totalMinGz)}</span></div>
+            </div>
+        </button>`;
+    };
 
-    btn.querySelector<HTMLAnchorElement>('.card-name')!.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
-});
+    const groups: [string, string][] = [
+        ['Pure JS', 'js'],
+        ['WebAssembly', 'wasm'],
+    ];
+    let html = '';
+    for (const [title, tag] of groups) {
+        const group = ENGINES.filter((e) => e.tag === tag);
+        if (group.length === 0) continue;
+        html += `<div class="menu-cat"><div class="menu-cat-header">${title}</div><div class="engine-grid">${group.map(engineTile).join('')}</div></div>`;
+    }
+    enginePanel.innerHTML = html;
+}
 
-const scenarioButtonsContainer = document.getElementById('scenario-buttons')!;
-SCENARIOS.forEach(({ id, label }) => {
-    const btn = document.createElement('button');
-    btn.className = `scenario-btn${id === activeScenarioName ? ' active' : ''}`;
-    btn.dataset.scenario = id;
-    btn.textContent = label;
-    scenarioButtonsContainer.appendChild(btn);
-});
+// --- reflect the current selection into the menu triggers + panels ---
+function setActiveScenarioUI(name: string): void {
+    scenarioCurrent.textContent = scenarioLabel(name);
+    for (const item of scenarioPanel.querySelectorAll<HTMLButtonElement>('.scenario-item')) {
+        item.classList.toggle('active', item.dataset.scenario === name);
+    }
+}
 
-const engineButtons = document.querySelectorAll('.engine-btn') as NodeListOf<HTMLButtonElement>;
-const scenarioButtons = document.querySelectorAll('.scenario-btn') as NodeListOf<HTMLButtonElement>;
+function setActiveEngineUI(name: string): void {
+    engineCurrent.textContent = engineLabelOf(name);
+    for (const tile of enginePanel.querySelectorAll<HTMLButtonElement>('[data-engine]')) {
+        tile.classList.toggle('active', tile.dataset.engine === name);
+    }
+}
 
 function getScenario(name: string): Scenario<any, any> {
     const entry = SCENARIOS.find((s) => s.id === name);
@@ -325,29 +436,63 @@ function animate(): void {
     stats.end();
 }
 
-engineButtons.forEach((btn) => {
-    btn.addEventListener('click', async () => {
-        for (const b of engineButtons) b.classList.remove('active');
-        btn.classList.add('active');
-        await startEngine(btn.dataset.engine!);
-    });
+// --- dropdown menus: open / close ---
+const topbar = document.getElementById('topbar')!;
+const scenarioTrigger = document.getElementById('scenario-trigger')!;
+const engineTrigger = document.getElementById('engine-trigger')!;
+
+function setMenuOpen(trigger: HTMLElement, panel: HTMLElement, open: boolean): void {
+    panel.hidden = !open;
+    trigger.setAttribute('aria-expanded', String(open));
+}
+function closeMenus(): void {
+    setMenuOpen(scenarioTrigger, scenarioPanel, false);
+    setMenuOpen(engineTrigger, enginePanel, false);
+}
+scenarioTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const willOpen = scenarioPanel.hidden;
+    closeMenus();
+    setMenuOpen(scenarioTrigger, scenarioPanel, willOpen);
+});
+engineTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const willOpen = enginePanel.hidden;
+    closeMenus();
+    setMenuOpen(engineTrigger, enginePanel, willOpen);
+});
+document.addEventListener('click', (e) => {
+    if (!topbar.contains(e.target as Node)) closeMenus();
 });
 
-scenarioButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-        for (const b of scenarioButtons) b.classList.remove('active');
-        btn.classList.add('active');
-        startScenario(btn.dataset.scenario!);
+// pick a scenario from the menu
+for (const item of scenarioPanel.querySelectorAll<HTMLButtonElement>('.scenario-item')) {
+    item.addEventListener('click', () => {
+        const name = item.dataset.scenario!;
+        setActiveScenarioUI(name);
+        closeMenus();
+        startScenario(name);
     });
-});
+}
+
+// pick an engine from the menu (the small repo ↗ still opens normally)
+for (const tile of enginePanel.querySelectorAll<HTMLButtonElement>('[data-engine]')) {
+    tile.addEventListener('click', async (e) => {
+        if ((e.target as HTMLElement).closest('a')) return;
+        const name = tile.dataset.engine!;
+        setActiveEngineUI(name);
+        closeMenus();
+        await startEngine(name);
+    });
+}
 
 async function init(): Promise<void> {
     const { engine, scenario, controls: restoredControls } = decodeParams();
     activeEngineName = engine;
     activeScenarioName = scenario;
 
-    for (const b of engineButtons) b.classList.toggle('active', b.dataset.engine === engine);
-    for (const b of scenarioButtons) b.classList.toggle('active', b.dataset.scenario === scenario);
+    setActiveScenarioUI(scenario);
+    setActiveEngineUI(engine);
 
     await Promise.all([box3d.init(), crashcat.init(), rapier.init(), jolt.init(), cannon.init(), bounce.init(), meep.init(), ammo.init()]);
     await startEngine(engine);

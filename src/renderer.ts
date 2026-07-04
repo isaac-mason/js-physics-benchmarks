@@ -6,7 +6,10 @@ import { ShapeType, MotionType, type PhysicsShape, type PhysicsState } from './a
 
 const UNIT_BOX_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
 UNIT_BOX_GEOMETRY.deleteAttribute('uv');
-const UNIT_SPHERE_GEOMETRY = new THREE.SphereGeometry(1, 16, 16);
+// Diameter 1 (radius 0.5) so, like the unit box, it scales by the full size:
+// getShapeScale() returns radius*2 (the diameter). A radius-1 unit sphere here
+// would render every sphere at 2x its collider.
+const UNIT_SPHERE_GEOMETRY = new THREE.SphereGeometry(0.5, 16, 16);
 UNIT_SPHERE_GEOMETRY.deleteAttribute('uv');
 
 const material = new THREE.MeshPhongMaterial({

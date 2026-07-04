@@ -11,104 +11,210 @@ body {
     color: #e0e0e0;
 }
 
-#title-top-left {
+canvas {
+    display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Top bar: minimal, scenario menu (left) + engine menu (right)
+   -------------------------------------------------------------------------- */
+
+#topbar {
     position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 100;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-#title {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    color: #e0e0e0;
-}
-
-#github-link {
-    font-size: 12px;
-    color: #999;
-    text-decoration: none;
-    letter-spacing: 0.02em;
-}
-
-#github-link:hover {
-    color: #aaa;
-}
-
-#controls-bottom-left {
-    position: fixed;
-    bottom: 16px;
-    left: 16px;
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-width: calc(100vw - 32px);
-}
-
-.control-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #e0e0e0;
-    padding-left: 2px;
-}
-
-.engine-buttons {
-    display: flex;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.85);
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    overflow-x: auto;
-}
-
-.engine-buttons::-webkit-scrollbar {
-    height: 4px;
-}
-
-.engine-buttons::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.engine-buttons::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 2px;
-}
-
-.engine-btn {
-    background: #2a2a2a;
-    color: #888;
-    border: 1px solid #444;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     padding: 10px 12px;
-    border-radius: 6px;
+    background: transparent;
+    pointer-events: none;
+}
+
+#topbar > * {
+    pointer-events: auto;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.brand-mark {
+    position: relative;
+    z-index: 101; /* stay in front of the open menu overlay (panel is z-index 100) */
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    color: #e0e0e0;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.brand-mark:hover {
+    color: #fff;
+}
+
+/* Dropdown menu ------------------------------------------------------------ */
+
+.menu {
+    position: relative;
+}
+
+.menu-trigger {
+    position: relative;
+    z-index: 101; /* keep the trigger text in front of the open menu overlay */
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 2px 0;
+    font-family: inherit;
+    color: #fff;
+    cursor: pointer;
+}
+
+.menu-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.menu-trigger:hover .menu-value,
+.menu-trigger[aria-expanded="true"] .menu-value {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+}
+
+.menu-caret {
+    font-size: 9px;
+    color: #888;
+    transition: transform 0.15s ease;
+}
+
+.menu-trigger:hover .menu-caret {
+    color: #ccc;
+}
+
+.menu-trigger[aria-expanded="true"] .menu-caret {
+    transform: rotate(180deg);
+    color: #fff;
+}
+
+/* Both panels are full-width mega-menus. They start at the very top so the
+   overlay extends up behind the (transparent) top bar; z-index sits below the
+   bar so the logo/menu text stay on top, and top padding clears the bar. */
+.menu-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 100;
+    background: rgba(16, 16, 18, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 46px 16px 18px;
+    max-height: 100vh;
+    overflow: auto;
+}
+
+.menu-panel[hidden] {
+    display: none;
+}
+
+/* Category header shared by both menus: italic, underlined divider. */
+.menu-cat-header {
+    font-size: 11px;
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a8a8a;
+    padding: 12px 2px 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    margin-bottom: 7px;
+}
+
+.menu-panel > *:first-child > .menu-cat-header {
+    padding-top: 2px;
+}
+
+/* Scenario menu: category sections, items in a flowing multi-column grid --- */
+
+.scenario-cat-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1px 10px;
+    padding-bottom: 4px;
+}
+
+.scenario-item {
+    background: none;
+    color: #cfcfcf;
+    border: none;
+    border-radius: 0;
+    padding: 5px 4px;
     font-family: inherit;
     font-size: 13px;
     cursor: pointer;
-    transition: all 0.15s ease;
     text-align: left;
-    min-width: 150px;
-    flex-shrink: 0;
+    white-space: nowrap;
+    transition: color 0.1s ease;
 }
 
-.engine-btn:hover {
+.scenario-item:hover {
+    color: #fff;
+}
+
+.scenario-item.active {
+    color: #3dd6c9;
+}
+
+/* Engine tiles (inside the engine panel) — the original card layout, wrapped
+   into a grid that uses as much width as the viewport allows. -------------- */
+
+.engine-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 4px;
+}
+
+.engine-tile {
+    flex: 0 0 190px; /* fixed width, packed left — don't stretch to fill */
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    border-radius: 0;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.engine-tile:hover {
     border-color: #666;
     color: #e0e0e0;
 }
 
-.engine-btn.active {
+.engine-tile.active {
     background: #00ff88;
     color: #000;
     border-color: #00ff88;
 }
 
-/* Card header: name + tag on one line */
+/* Card header: name + tag + repo icon on one line */
 .card-header {
     display: flex;
     align-items: center;
@@ -121,14 +227,30 @@ body {
     font-weight: 700;
     letter-spacing: 0.02em;
     color: #e0e0e0;
+}
+
+.engine-tile.active .card-name {
+    color: #000;
+}
+
+.tile-repo {
+    margin-left: auto;
+    font-size: 12px;
+    line-height: 1;
+    color: #888;
     text-decoration: none;
+    padding: 0 2px;
 }
 
-.card-name:hover {
-    text-decoration: underline;
+.tile-repo:hover {
+    color: #fff;
 }
 
-.engine-btn.active .card-name {
+.engine-tile.active .tile-repo {
+    color: #005533;
+}
+
+.engine-tile.active .tile-repo:hover {
     color: #000;
 }
 
@@ -140,11 +262,11 @@ body {
     margin-bottom: 8px;
 }
 
-.engine-btn.active .card-version {
+.engine-tile.active .card-version {
     color: #005533;
 }
 
-/* Shared stat label/value used in col-stat and total-stat rows */
+/* Shared stat label/value */
 .card-stat-label {
     font-size: 9px;
     font-weight: 700;
@@ -155,7 +277,7 @@ body {
     white-space: nowrap;
 }
 
-.engine-btn.active .card-stat-label {
+.engine-tile.active .card-stat-label {
     color: #005533;
 }
 
@@ -167,11 +289,11 @@ body {
     white-space: nowrap;
 }
 
-.engine-btn.active .card-stat-value {
+.engine-tile.active .card-stat-value {
     color: #003322;
 }
 
-/* Two-column stat layout */
+/* Two-column JS / WASM stat layout */
 .card-cols {
     display: flex;
     gap: 0;
@@ -194,7 +316,7 @@ body {
     margin-bottom: 2px;
 }
 
-.engine-btn.active .card-col-label {
+.engine-tile.active .card-col-label {
     color: #007744;
 }
 
@@ -205,7 +327,7 @@ body {
     align-self: stretch;
 }
 
-.engine-btn.active .card-col-divider {
+.engine-tile.active .card-col-divider {
     background: #00bb66;
 }
 
@@ -216,7 +338,7 @@ body {
     gap: 4px;
 }
 
-/* Total row */
+/* Totals row */
 .card-totals {
     border-top: 1px solid #333;
     padding-top: 5px;
@@ -225,7 +347,7 @@ body {
     gap: 2px;
 }
 
-.engine-btn.active .card-totals {
+.engine-tile.active .card-totals {
     border-top-color: #00bb66;
 }
 
@@ -241,18 +363,17 @@ body {
     font-weight: 700;
 }
 
-.engine-btn.active .card-stat-value--highlight {
+.engine-tile.active .card-stat-value--highlight {
     color: #000;
 }
 
 .engine-tag {
     display: inline-block;
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 700;
     letter-spacing: 0.04em;
     padding: 1px 4px;
-    border-radius: 3px;
-    vertical-align: middle;
+    border-radius: 0;
     text-transform: uppercase;
 }
 
@@ -268,19 +389,20 @@ body {
     border: 1px solid #4a2a8a;
 }
 
-canvas {
-    display: block;
-}
+/* --------------------------------------------------------------------------
+   Top-right panel: perf stats + scenario controls (below the top bar)
+   -------------------------------------------------------------------------- */
 
 #top-right-panel {
     position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 100;
+    top: 10px;
+    right: 12px;
+    z-index: 90;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
+    max-width: calc(100vw - 24px);
 }
 
 #scenario-gui {
@@ -289,50 +411,110 @@ canvas {
     align-items: flex-end;
 }
 
-.scenario-buttons {
+/* Perf stats card ----------------------------------------------------------*/
+
+.stats-card {
     display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    background: rgba(8, 8, 8, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 0;
+}
+
+.stat-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 5px 0;
+}
+
+.stat-panel + .stat-panel {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
     gap: 8px;
-    background: rgba(0, 0, 0, 0.85);
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    overflow-x: auto;
 }
 
-.scenario-buttons::-webkit-scrollbar {
-    height: 4px;
+.stat-name {
+    display: inline-flex;
+    align-items: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
 }
 
-.scenario-buttons::-webkit-scrollbar-track {
-    background: transparent;
+.stat-name::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 7px;
+    background: currentColor;
 }
 
-.scenario-buttons::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 2px;
+.stat-nums {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    font-variant-numeric: tabular-nums;
 }
 
-.scenario-btn {
-    background: #2a2a2a;
-    color: #888;
-    border: 1px solid #444;
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    flex-shrink: 0;
+.stat-cur {
+    font-size: 12px;
+    font-weight: 700;
+    color: #f4f4f4;
 }
 
-.scenario-btn:hover {
-    border-color: #666;
-    color: #e0e0e0;
+.stat-unit {
+    font-size: 9px;
+    color: #666;
 }
 
-.scenario-btn.active {
-    background: #00aaff;
-    color: #000;
-    border-color: #00aaff;
-    font-weight: 600;
+.stat-avg {
+    font-size: 9px;
+    color: #5a5a5a;
+    letter-spacing: 0.02em;
+}
+
+.stat-graph {
+    display: block;
+}
+
+/* Primary panel (step) — the headline metric, shown larger. */
+.stat-panel--primary {
+    padding: 2px 0 8px;
+    margin-bottom: 2px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.stat-panel--primary .stat-name {
+    font-size: 10px;
+}
+
+.stat-panel--primary .stat-cur {
+    font-size: 20px;
+}
+
+.stat-panel--primary .stat-unit {
+    font-size: 11px;
+}
+
+.stat-panel--primary .stat-avg {
+    font-size: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   Mobile
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+    .menu-panel {
+        padding: 42px 10px 14px;
+    }
 }

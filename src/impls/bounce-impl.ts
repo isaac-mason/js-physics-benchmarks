@@ -1,4 +1,4 @@
-import { type Body, type CastResult, Ray, World } from '@perplexdotgg/bounce';
+import { type Body, type CastResult, Ray, Vec3 as BounceVec3, World } from '@perplexdotgg/bounce';
 import type { PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { MotionType, ShapeType } from '../api';
 
@@ -90,8 +90,12 @@ export function destroyShape(_state: ImplState, _implHandle: PhysicsShape): void
 export function createRigidBody(state: ImplState, options: RigidBodyOptions, implShape: PhysicsShape): Body {
     const shape = buildBounceShape(state.world, implShape);
 
+    // bounce's body-creation field for initial rotation is `orientation`, not
+    // `quaternion` — map it across (default identity) or the initial rotation
+    // is silently dropped.
     const bodyOptions = {
         ...options,
+        orientation: options.quaternion ?? [0, 0, 0, 1],
         shape,
     };
 
@@ -137,6 +141,14 @@ export function setBodyQuaternion(_state: ImplState, handle: Body, quaternion: Q
 
 export function setBodyLinearVelocity(_state: ImplState, handle: Body, velocity: Vec3): void {
     handle.linearVelocity.set(velocity);
+}
+
+const _bounceImpulse = new BounceVec3();
+
+export function applyImpulse(_state: ImplState, handle: Body, impulse: Vec3): void {
+    _bounceImpulse.set(impulse);
+    handle.applyLinearImpulse(_bounceImpulse);
+    handle.wakeUp();
 }
 
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: Body): void {
