@@ -9,32 +9,32 @@ dependencies:
     specifier: 0.19.3
     version: 0.19.3
   '@perplexdotgg/bounce':
-    specifier: ^1.8.0
-    version: 1.8.0
+    specifier: ^1.8.1
+    version: 1.8.1
   '@woosh/meep-engine':
-    specifier: ^2.153.0
-    version: 2.153.0(three@0.183.2)
+    specifier: ^2.165.0
+    version: 2.165.0(three@0.185.1)
   box3d.js:
-    specifier: ^0.0.1
-    version: 0.0.1
+    specifier: ^0.0.2
+    version: 0.0.2
   cannon-es:
     specifier: 0.20.0
     version: 0.20.0
   crashcat:
     specifier: 0.0.5
-    version: 0.0.5(three@0.183.2)
+    version: 0.0.5(three@0.185.1)
   jolt-physics:
-    specifier: 1.0.0
-    version: 1.0.0
+    specifier: 1.0.1
+    version: 1.0.1
   lil-gui:
     specifier: ^0.21.0
     version: 0.21.0
   mathcat:
-    specifier: ^0.0.11
-    version: 0.0.11
+    specifier: ^0.0.13
+    version: 0.0.13
   three:
-    specifier: ^0.183.2
-    version: 0.183.2
+    specifier: ^0.185.1
+    version: 0.185.1
 
 devDependencies:
   '@biomejs/biome':
@@ -50,8 +50,8 @@ devDependencies:
     specifier: ^12.3.0
     version: 12.3.0(rollup@4.59.0)(tslib@2.8.1)(typescript@5.9.3)
   '@types/three':
-    specifier: ^0.183.1
-    version: 0.183.1
+    specifier: ^0.185.0
+    version: 0.185.0
   rollup:
     specifier: ^4.59.0
     version: 4.59.0
@@ -435,8 +435,8 @@ packages:
       '@jridgewell/sourcemap-codec': 1.5.5
     dev: true
 
-  /@perplexdotgg/bounce@1.8.0:
-    resolution: {integrity: sha512-UZIuTVGXhxgxMQsF1ekeWAR8c0z3qFNHrEdRIWe7Bmh34tN+RYrMaPmIwONd+WHOA78YosARb13gjKF5bgiT6Q==}
+  /@perplexdotgg/bounce@1.8.1:
+    resolution: {integrity: sha512-/a5brlrveYoxYaB+OfZJgrGAFMAMu82DVPWQOk6YIlIEQB8ZMyrLyjkO1C5IRROdnSy7XNB6NBU1HhWOGK5F1Q==}
     dependencies:
       monomorph: 2.3.1
     dev: false
@@ -869,28 +869,23 @@ packages:
     resolution: {integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==}
     dev: true
 
-  /@types/three@0.183.1:
-    resolution: {integrity: sha512-f2Pu5Hrepfgavttdye3PsH5RWyY/AvdZQwIVhrc4uNtvF7nOWJacQKcoVJn0S4f0yYbmAE6AR+ve7xDcuYtMGw==}
+  /@types/three@0.185.0:
+    resolution: {integrity: sha512-O2Uy8Cj4Nonr8dWUUbifMdPe8B0Mq7EdOHb89S4+kjUw/KhbjTZrUuYlrQ1bpUKG+EP9QJnN7qNxbHGlGoLHMA==}
     dependencies:
       '@dimforge/rapier3d-compat': 0.12.0
       '@tweenjs/tween.js': 23.1.3
       '@types/stats.js': 0.17.4
       '@types/webxr': 0.5.24
-      '@webgpu/types': 0.1.69
       fflate: 0.8.2
-      meshoptimizer: 1.0.1
+      meshoptimizer: 1.1.1
     dev: true
 
   /@types/webxr@0.5.24:
     resolution: {integrity: sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==}
     dev: true
 
-  /@webgpu/types@0.1.69:
-    resolution: {integrity: sha512-RPmm6kgRbI8e98zSD3RVACvnuktIja5+yLgDAkTmxLr90BEwdTXRQWNLF3ETTTyH/8mKhznZuN5AveXYFEsMGQ==}
-    dev: true
-
-  /@woosh/meep-engine@2.153.0(three@0.183.2):
-    resolution: {integrity: sha512-/Ppo7V66zgDNw2T+BaQWk+7xPvarVknPmupt4/8urdp1OWzwamu8zffWlOPZ4ap1p9nJFG90Ag0pFhpUX2wQnA==}
+  /@woosh/meep-engine@2.165.0(three@0.185.1):
+    resolution: {integrity: sha512-fG4JUnVZWkZ5EK87Tj8MYr7lnp6AgdCBTPzWOOpg8vMMJut4BaDBL9vRnZLNK2bTQuEOrZwFbJab4JOaXo4zOQ==}
     engines: {node: '>=24'}
     peerDependencies:
       three: '>=0.135.0'
@@ -902,7 +897,7 @@ packages:
       opentype.js: 1.3.3
       pako: 2.0.3
       robust-predicates: 3.0.2
-      three: 0.183.2
+      three: 0.185.1
     dev: false
 
   /acorn@8.16.0:
@@ -911,8 +906,8 @@ packages:
     hasBin: true
     dev: true
 
-  /box3d.js@0.0.1:
-    resolution: {integrity: sha512-c9OayHPZP2t2Mh3ak6GF1lbj3bKEJxIrndwYoWbuQWeGqU351/npxLpbll7Rt5Qt+Czz1nUL0ewb9PpIFuL08A==}
+  /box3d.js@0.0.2:
+    resolution: {integrity: sha512-ziC6IqMbMAYns1aJ7E1czhBEE2Kj+/QK9L16vMXOz7UaXKUj9gX7Za5ut+Dg3euHK6I/1brFSHOpmOwCI6FhYQ==}
     dev: false
 
   /buffer-from@1.1.2:
@@ -931,7 +926,7 @@ packages:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
 
-  /crashcat@0.0.5(three@0.183.2):
+  /crashcat@0.0.5(three@0.185.1):
     resolution: {integrity: sha512-8BcoWz5sfUxUTCzFlBImHNsWei4Wso18MOHkjeZjgEGCq+SPlbYr65USCCeVsEOTq1GM6Aai/HHvmgfpKw61dQ==}
     peerDependencies:
       three: '>=0.182.0'
@@ -940,7 +935,7 @@ packages:
         optional: true
     dependencies:
       mathcat: 0.0.13
-      three: 0.183.2
+      three: 0.185.1
     dev: false
 
   /deepmerge@4.3.1:
@@ -1042,8 +1037,8 @@ packages:
       '@types/estree': 1.0.8
     dev: true
 
-  /jolt-physics@1.0.0:
-    resolution: {integrity: sha512-rA7Mcb3CDqsDzr0J15P2DDftMR4d15/B6hfvvVh88Se3KFCYXGbPKGK2sJFGOpzUksRpyQhgbfLHgHL4SA5UzQ==}
+  /jolt-physics@1.0.1:
+    resolution: {integrity: sha512-guJAWeamqWVM2n6yy87vG4RXtvA3R8+578/tege3THoC+ply2x9rRxIdfLJO69YarHBVXqGuMjq53v48u2V1cQ==}
     dev: false
 
   /lil-gui@0.21.0:
@@ -1056,16 +1051,12 @@ packages:
       '@jridgewell/sourcemap-codec': 1.5.5
     dev: true
 
-  /mathcat@0.0.11:
-    resolution: {integrity: sha512-HIGDmqrjy6KE4LRH9uGLdYoVl+69idwtE5OjHILnNB4IL4RE2aVNagjLAWFKWH5xlcxNH9i+AoBgRKR4VdsyFw==}
-    dev: false
-
   /mathcat@0.0.13:
     resolution: {integrity: sha512-d5KhlEP3p6/ACSGpgwSBPCiiubdVXYb95mkK/rfQd5DirqHjMTYpvX5AP3vZXiQGO4y9DomRgSjOYwXW3dhA+w==}
     dev: false
 
-  /meshoptimizer@1.0.1:
-    resolution: {integrity: sha512-Vix+QlA1YYT3FwmBBZ+49cE5y/b+pRrcXKqGpS5ouh33d3lSp2PoTpCw19E0cKDFWalembrHnIaZetf27a+W2g==}
+  /meshoptimizer@1.1.1:
+    resolution: {integrity: sha512-oRFNWJRDA/WTrVj7NWvqa5HqE1t9MYDj2VaWirQCzCCrAd2GHrqR/sQezCxiWATPNlKTcRaPRHPJwIRoPBAp5g==}
     dev: true
 
   /monomorph@2.3.1:
@@ -1199,8 +1190,8 @@ packages:
       source-map-support: 0.5.21
     dev: true
 
-  /three@0.183.2:
-    resolution: {integrity: sha512-di3BsL2FEQ1PA7Hcvn4fyJOlxRRgFYBpMTcyOgkwJIaDOdJMebEFPA+t98EvjuljDx4hNulAGwF6KIjtwI5jgQ==}
+  /three@0.185.1:
+    resolution: {integrity: sha512-5aojFCXKwnjBRZvUnt3WFfEcvUJgkN5LlijRFN95hMy8WVkG4I0QNcJE+OuWvuJ0bOdStrbfXn0pkd6/QyiAlg==}
     dev: false
 
   /tiny-inflate@1.0.3:

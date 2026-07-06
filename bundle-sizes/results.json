@@ -1,14 +1,14 @@
 {
   "meta": {
-    "measuredAt": "2026-07-06T10:54:01.852Z",
+    "measuredAt": "2026-07-06T11:23:13.628Z",
     "versions": {
       "crashcat": "0.0.5",
       "rapier": "0.19.3",
-      "jolt": "1.0.0",
+      "jolt": "1.0.1",
       "cannon": "0.20.0",
-      "bounce": "1.8.0",
-      "meep": "2.153.0",
-      "box3d": "0.0.1",
+      "bounce": "1.8.1",
+      "meep": "2.165.0",
+      "box3d": "0.0.2",
       "ammo": "1ed8b58"
     }
   },
@@ -60,17 +60,17 @@
     "jolt": {
       "name": "jolt",
       "js": {
-        "raw": 934781,
-        "minified": 944245,
-        "minifiedGzip": 132952
+        "raw": 965608,
+        "minified": 946947,
+        "minifiedGzip": 133437
       },
       "wasm": {
-        "total": 1993586,
-        "totalGzip": 732248,
+        "total": 1986692,
+        "totalGzip": 728937,
         "files": {
           "jolt-physics.wasm.wasm": {
-            "raw": 1993586,
-            "gzip": 732248
+            "raw": 1986692,
+            "gzip": 728937
           }
         }
       }
@@ -86,17 +86,17 @@
     "bounce": {
       "name": "bounce",
       "js": {
-        "raw": 613759,
-        "minified": 311569,
-        "minifiedGzip": 71904
+        "raw": 621069,
+        "minified": 312348,
+        "minifiedGzip": 72021
       }
     },
     "meep": {
       "name": "meep",
       "js": {
-        "raw": 1111363,
-        "minified": 261009,
-        "minifiedGzip": 85954
+        "raw": 1259359,
+        "minified": 307099,
+        "minifiedGzip": 103392
       }
     },
     "ammo": {

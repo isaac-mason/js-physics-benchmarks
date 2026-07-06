@@ -12,6 +12,7 @@ import { BodyKind } from '@woosh/meep-engine/src/engine/physics/ecs/BodyKind.js'
 import { Collider } from '@woosh/meep-engine/src/engine/physics/ecs/Collider.js';
 import { ColliderObserverSystem } from '@woosh/meep-engine/src/engine/physics/ecs/ColliderObserverSystem.js';
 import { PhysicsSystem } from '@woosh/meep-engine/src/engine/physics/ecs/PhysicsSystem.js';
+import { ContactEventKind } from '@woosh/meep-engine/src/engine/physics/events/ContactEventBuffer.js';
 import { RigidBody } from '@woosh/meep-engine/src/engine/physics/ecs/RigidBody.js';
 import { PhysicsSurfacePoint } from '@woosh/meep-engine/src/engine/physics/queries/PhysicsSurfacePoint.js';
 
@@ -35,7 +36,6 @@ type ImplState = {
     physics: PhysicsSystem;
     entityToBody: Map<number, BodyHandle>;
     contactCb: ((a: BodyHandle, b: BodyHandle) => void) | null;
-    contactListener: ((payload: { entityA: number; entityB: number }) => void) | null;
     _ray: Ray3;
     _hit: PhysicsSurfacePoint;
 };
@@ -166,17 +166,13 @@ export function createWorld(): ImplState {
         physics,
         entityToBody: new Map(),
         contactCb: null,
-        contactListener: null,
         _ray: Ray3.from(0, 0, 0, 0, -1, 0, 1),
         _hit: new PhysicsSurfacePoint(),
     };
 }
 
 export function disposeWorld(state: ImplState): void {
-    if (state.contactListener) {
-        state.physics.onContactBegin.remove(state.contactListener);
-        state.contactListener = null;
-    }
+    state.contactCb = null;
     state.em.shutdown();
     state.em.detachDataset();
     state.entityToBody.clear();
@@ -188,6 +184,22 @@ export function setGravity(state: ImplState, x: number, y: number, z: number): v
 
 export function stepSimulation(state: ImplState, dt: number): void {
     state.em.simulate(dt);
+
+    // Meep has no global contact signal — the PhysicsSystem instead dispatches
+    // per-entity events and leaves this step's records in `contactEvents` until
+    // the next step's manifold diff clears them. Poll the buffer here so we get
+    // exactly one callback per pair (the per-entity fan-out in the engine's own
+    // dispatch would double-fire). This runs one fixedUpdate per simulate() (see
+    // createWorld), so the buffer holds only the events we just produced.
+    const cb = state.contactCb;
+    if (!cb) return;
+    const events = state.physics.contactEvents;
+    for (let i = 0; i < events.count; i++) {
+        if (events.kind_at(i) !== ContactEventKind.Begin) continue;
+        const handleA = state.entityToBody.get(events.entityA_at(i));
+        const handleB = state.entityToBody.get(events.entityB_at(i));
+        if (handleA && handleB) cb(handleA, handleB);
+    }
 }
 
 export function createShape(_state: ImplState, desc: PhysicsShape): MeepShapeHandle {
@@ -284,21 +296,11 @@ export function setBodyTranslationRotation(state: ImplState, handle: BodyHandle,
 }
 
 export function onContactAdded(state: ImplState, onContact: (hA: BodyHandle, hB: BodyHandle) => void): void {
+    // Contacts are drained from the per-step event buffer in stepSimulation.
     state.contactCb = onContact;
-    state.contactListener = (payload) => {
-        // Payload is reused across dispatches — read entityA/entityB immediately.
-        const handleA = state.entityToBody.get(payload.entityA);
-        const handleB = state.entityToBody.get(payload.entityB);
-        if (handleA && handleB) onContact(handleA, handleB);
-    };
-    state.physics.onContactBegin.add(state.contactListener);
 }
 
 export function disposeContactListener(state: ImplState): void {
-    if (state.contactListener) {
-        state.physics.onContactBegin.remove(state.contactListener);
-        state.contactListener = null;
-    }
     state.contactCb = null;
 }
 
