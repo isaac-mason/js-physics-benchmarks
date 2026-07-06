@@ -17,7 +17,7 @@
     "@woosh/meep-engine": "^2.153.0",
     "box3d.js": "^0.0.1",
     "cannon-es": "0.20.0",
-    "crashcat": "0.0.2",
+    "crashcat": "0.0.5",
     "jolt-physics": "1.0.0",
     "lil-gui": "^0.21.0",
     "mathcat": "^0.0.11",

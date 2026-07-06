@@ -15,6 +15,17 @@ function computeAvg(values: number[]): number {
     return sum / values.length;
 }
 
+function computeMinMax(values: number[]): { min: number; max: number } {
+    if (values.length === 0) return { min: 0, max: 0 };
+    let min = Infinity;
+    let max = -Infinity;
+    for (const v of values) {
+        if (v < min) min = v;
+        if (v > max) max = v;
+    }
+    return { min, max };
+}
+
 export function createStats() {
     const panels: StatsPanel[] = [];
 
@@ -45,11 +56,26 @@ export function createStats() {
         const unitEl = document.createElement('span');
         unitEl.className = 'stat-unit';
         unitEl.textContent = 'ms';
+        nums.append(curEl, unitEl);
+
         const avgEl = document.createElement('span');
-        avgEl.className = 'stat-avg';
+        avgEl.className = 'stat-computed';
         avgEl.textContent = 'avg 0.00';
-        nums.append(curEl, unitEl, avgEl);
-        head.append(nameEl, nums);
+        const minEl = document.createElement('span');
+        minEl.className = 'stat-computed';
+        minEl.textContent = 'min 0.00';
+        const maxEl = document.createElement('span');
+        maxEl.className = 'stat-computed';
+        maxEl.textContent = 'max 0.00';
+
+        const computed = document.createElement('div');
+        computed.className = 'stat-computed-col';
+        computed.append(avgEl, minEl, maxEl);
+
+        const right = document.createElement('div');
+        right.className = 'stat-right';
+        right.append(nums, computed);
+        head.append(nameEl, right);
 
         const canvas = document.createElement('canvas');
         canvas.className = 'stat-graph';
@@ -123,6 +149,8 @@ export function createStats() {
                 lastTextAt = 0;
                 curEl.textContent = '0.00';
                 avgEl.textContent = 'avg 0.00';
+                minEl.textContent = 'min 0.00';
+                maxEl.textContent = 'max 0.00';
                 ctx.clearRect(0, 0, W, H);
             },
             update: (value: number, maxValue: number) => {
@@ -136,6 +164,9 @@ export function createStats() {
                     lastTextAt = now;
                     curEl.textContent = value.toFixed(2);
                     avgEl.textContent = `avg ${computeAvg(history).toFixed(2)}`;
+                    const { min, max } = computeMinMax(history);
+                    minEl.textContent = `min ${min.toFixed(2)}`;
+                    maxEl.textContent = `max ${max.toFixed(2)}`;
                 }
 
                 draw(maxValue);

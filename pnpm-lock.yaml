@@ -21,8 +21,8 @@ dependencies:
     specifier: 0.20.0
     version: 0.20.0
   crashcat:
-    specifier: 0.0.2
-    version: link:../crashcat
+    specifier: 0.0.5
+    version: 0.0.5(three@0.183.2)
   jolt-physics:
     specifier: 1.0.0
     version: 1.0.0
@@ -931,6 +931,18 @@ packages:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
 
+  /crashcat@0.0.5(three@0.183.2):
+    resolution: {integrity: sha512-8BcoWz5sfUxUTCzFlBImHNsWei4Wso18MOHkjeZjgEGCq+SPlbYr65USCCeVsEOTq1GM6Aai/HHvmgfpKw61dQ==}
+    peerDependencies:
+      three: '>=0.182.0'
+    peerDependenciesMeta:
+      three:
+        optional: true
+    dependencies:
+      mathcat: 0.0.13
+      three: 0.183.2
+    dev: false
+
   /deepmerge@4.3.1:
     resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}
     engines: {node: '>=0.10.0'}
@@ -1046,6 +1058,10 @@ packages:
 
   /mathcat@0.0.11:
     resolution: {integrity: sha512-HIGDmqrjy6KE4LRH9uGLdYoVl+69idwtE5OjHILnNB4IL4RE2aVNagjLAWFKWH5xlcxNH9i+AoBgRKR4VdsyFw==}
+    dev: false
+
+  /mathcat@0.0.13:
+    resolution: {integrity: sha512-d5KhlEP3p6/ACSGpgwSBPCiiubdVXYb95mkK/rfQd5DirqHjMTYpvX5AP3vZXiQGO4y9DomRgSjOYwXW3dhA+w==}
     dev: false
 
   /meshoptimizer@1.0.1:

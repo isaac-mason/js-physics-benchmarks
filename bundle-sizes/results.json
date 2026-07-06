@@ -1,8 +1,8 @@
 {
   "meta": {
-    "measuredAt": "2026-07-02T03:54:10.126Z",
+    "measuredAt": "2026-07-06T10:54:01.852Z",
     "versions": {
-      "crashcat": "0.0.2",
+      "crashcat": "0.0.5",
       "rapier": "0.19.3",
       "jolt": "1.0.0",
       "cannon": "0.20.0",
@@ -16,9 +16,9 @@
     "crashcat": {
       "name": "crashcat",
       "js": {
-        "raw": 538406,
-        "minified": 147131,
-        "minifiedGzip": 41761
+        "raw": 499460,
+        "minified": 169378,
+        "minifiedGzip": 46336
       }
     },
     "box3d": {

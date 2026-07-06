@@ -476,10 +476,24 @@ canvas {
     color: #666;
 }
 
-.stat-avg {
+.stat-right {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.stat-computed-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+}
+
+.stat-computed {
     font-size: 9px;
     color: #5a5a5a;
     letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
 }
 
 .stat-graph {
@@ -505,7 +519,7 @@ canvas {
     font-size: 11px;
 }
 
-.stat-panel--primary .stat-avg {
+.stat-panel--primary .stat-computed {
     font-size: 10px;
 }
 
