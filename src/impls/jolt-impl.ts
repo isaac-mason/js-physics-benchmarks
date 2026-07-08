@@ -1,7 +1,12 @@
 import joltWasmUrl from 'jolt-physics/jolt-physics.wasm.wasm?url';
 import Jolt from 'jolt-physics/wasm';
-import type { PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
-import { MotionType, ShapeType } from '../api';
+import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
+import { Capability, MotionType, ShapeType } from '../api';
+import { vec3 } from 'mathcat';
+
+export const capabilities: ReadonlySet<Capability> = new Set([Capability.Raycast, Capability.ContactListener, Capability.HingeLimits, Capability.ConvexHull]);
+
+const _quat: Quat = [0, 0, 0, 1];
 
 type JoltType = Awaited<ReturnType<typeof Jolt>>;
 
@@ -22,9 +27,9 @@ export type ImplState = {
 let jolt: JoltType | null = null;
 let initialized = false;
 
-let _vec3: Jolt.Vec3;
-let _rvec3: Jolt.RVec3;
-let _quat: Jolt.Quat;
+let _jolt_vec3: Jolt.Vec3;
+let _jolt_rvec3: Jolt.RVec3;
+let _jolt_quat: Jolt.Quat;
 
 function motionTypeToJolt(Jolt: JoltType, motionType: MotionType): number {
     switch (motionType) {
@@ -54,9 +59,9 @@ let _rayDirection: Jolt.Vec3 | null = null;
 export async function init(): Promise<void> {
     if (initialized) return;
     jolt = await Jolt({ locateFile: () => joltWasmUrl });
-    _vec3 = new jolt.Vec3(0, 0, 0);
-    _rvec3 = new jolt.RVec3(0, 0, 0);
-    _quat = new jolt.Quat(0, 0, 0, 1);
+    _jolt_vec3 = new jolt.Vec3(0, 0, 0);
+    _jolt_rvec3 = new jolt.RVec3(0, 0, 0);
+    _jolt_quat = new jolt.Quat(0, 0, 0, 1);
     _raycastCollector = new jolt.CastRayClosestHitCollisionCollector();
     _rayCastSettings = new jolt.RayCastSettings();
     _broadPhaseLayerFilter = new jolt.BroadPhaseLayerFilter();
@@ -87,6 +92,8 @@ export function createWorld(): ImplState {
     const bpInterface = new J.BroadPhaseLayerInterfaceTable(NUM_OBJECT_LAYERS, NUM_BP_LAYERS);
     bpInterface.MapObjectToBroadPhaseLayer(LAYER_NON_MOVING, bpNonMoving);
     bpInterface.MapObjectToBroadPhaseLayer(LAYER_MOVING, bpMoving);
+    J.destroy(bpNonMoving); // copied into bpInterface, original wrapper can be freed
+    J.destroy(bpMoving);
 
     const settings = new J.JoltSettings();
     settings.mObjectLayerPairFilter = objectFilter;
@@ -113,8 +120,8 @@ export function createWorld(): ImplState {
 }
 
 export function setGravity(state: ImplState, x: number, y: number, z: number): void {
-    _vec3.Set(x, y, z);
-    state.physicsSystem.SetGravity(_vec3);
+    _jolt_vec3.Set(x, y, z);
+    state.physicsSystem.SetGravity(_jolt_vec3);
 }
 
 export function stepSimulation(state: ImplState, dt: number): void {
@@ -125,8 +132,8 @@ export function createShape(_state: ImplState, desc: PhysicsShape): Jolt.Shape {
     const J = jolt!;
     switch (desc.type) {
         case ShapeType.BOX: {
-            _vec3.Set(desc.halfExtents[0], desc.halfExtents[1], desc.halfExtents[2]);
-            const settings = new J.BoxShapeSettings(_vec3, desc.convexRadius);
+            _jolt_vec3.Set(desc.halfExtents[0], desc.halfExtents[1], desc.halfExtents[2]);
+            const settings = new J.BoxShapeSettings(_jolt_vec3, desc.convexRadius);
             const result = settings.Create();
             const shape = result.Get();
             shape.AddRef(); // take ownership before releasing the result and settings
@@ -147,8 +154,8 @@ export function createShape(_state: ImplState, desc: PhysicsShape): Jolt.Shape {
             const settings = new J.ConvexHullShapeSettings();
             const pts = settings.mPoints;
             for (let i = 0; i < desc.points.length; i += 3) {
-                _vec3.Set(desc.points[i]!, desc.points[i + 1]!, desc.points[i + 2]!);
-                pts.push_back(_vec3);
+                _jolt_vec3.Set(desc.points[i]!, desc.points[i + 1]!, desc.points[i + 2]!);
+                pts.push_back(_jolt_vec3);
             }
             const result = settings.Create();
             if (!result.IsValid()) {
@@ -202,13 +209,13 @@ export function createRigidBody(state: ImplState, options: RigidBodyOptions, imp
 
     const layer = objectLayerForMotionType(options.motionType);
 
-    _rvec3.Set(options.position[0], options.position[1], options.position[2]);
+    _jolt_rvec3.Set(options.position[0], options.position[1], options.position[2]);
     const q = options.quaternion ?? ([0, 0, 0, 1] as Quat);
-    _quat.Set(q[0], q[1], q[2], q[3]);
+    _jolt_quat.Set(q[0], q[1], q[2], q[3]);
 
     // BodyCreationSettings takes a reference to the shape — we keep our own AddRef()'d
     // reference from createShape() so the shape stays alive independently of bodies.
-    const creationSettings = new J.BodyCreationSettings(implShape, _rvec3, _quat, motionTypeToJolt(J, options.motionType), layer);
+    const creationSettings = new J.BodyCreationSettings(implShape, _jolt_rvec3, _jolt_quat, motionTypeToJolt(J, options.motionType), layer);
 
     creationSettings.mFriction = options.friction ?? 0.5;
     creationSettings.mRestitution = options.restitution ?? 0;
@@ -252,24 +259,24 @@ export function getBodyQuaternion(out: Quat, _state: ImplState, handle: Jolt.Bod
 }
 
 export function setBodyPosition(state: ImplState, handle: Jolt.Body, position: Vec3): void {
-    _rvec3.Set(position[0], position[1], position[2]);
-    state.bodyInterface.SetPosition(handle.GetID(), _rvec3, jolt!.EActivation_Activate);
+    _jolt_rvec3.Set(position[0], position[1], position[2]);
+    state.bodyInterface.SetPosition(handle.GetID(), _jolt_rvec3, jolt!.EActivation_Activate);
 }
 
 export function setBodyQuaternion(state: ImplState, handle: Jolt.Body, quaternion: Quat): void {
-    _quat.Set(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
-    state.bodyInterface.SetRotation(handle.GetID(), _quat, jolt!.EActivation_Activate);
+    _jolt_quat.Set(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
+    state.bodyInterface.SetRotation(handle.GetID(), _jolt_quat, jolt!.EActivation_Activate);
 }
 
 export function setBodyLinearVelocity(state: ImplState, handle: Jolt.Body, velocity: Vec3): void {
-    _vec3.Set(velocity[0], velocity[1], velocity[2]);
-    state.bodyInterface.SetLinearVelocity(handle.GetID(), _vec3);
+    _jolt_vec3.Set(velocity[0], velocity[1], velocity[2]);
+    state.bodyInterface.SetLinearVelocity(handle.GetID(), _jolt_vec3);
 }
 
 export function applyImpulse(state: ImplState, handle: Jolt.Body, impulse: Vec3): void {
-    _vec3.Set(impulse[0], impulse[1], impulse[2]);
+    _jolt_vec3.Set(impulse[0], impulse[1], impulse[2]);
     state.bodyInterface.ActivateBody(handle.GetID());
-    state.bodyInterface.AddImpulse(handle.GetID(), _vec3);
+    state.bodyInterface.AddImpulse(handle.GetID(), _jolt_vec3);
 }
 
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: Jolt.Body): void {
@@ -280,9 +287,9 @@ export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: Jolt
 }
 
 export function setBodyTranslationRotation(state: ImplState, handle: Jolt.Body, position: Vec3, quaternion: Quat): void {
-    _rvec3.Set(position[0], position[1], position[2]);
-    _quat.Set(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
-    state.bodyInterface.SetPositionAndRotation(handle.GetID(), _rvec3, _quat, jolt!.EActivation_Activate);
+    _jolt_rvec3.Set(position[0], position[1], position[2]);
+    _jolt_quat.Set(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
+    state.bodyInterface.SetPositionAndRotation(handle.GetID(), _jolt_rvec3, _jolt_quat, jolt!.EActivation_Activate);
 }
 
 export function onContactAdded(state: ImplState, onContact: (hA: Jolt.Body, hB: Jolt.Body) => void): void {
@@ -326,6 +333,79 @@ export function disposeContactListener(state: ImplState): void {
         jolt!.destroy(state.contactListener);
         state.contactListener = undefined;
     }
+}
+
+export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: Jolt.Body, bodyB: Jolt.Body): Jolt.Constraint {
+    const J = jolt!;
+    const s = new J.PointConstraintSettings();
+    s.mSpace = J.EConstraintSpace_WorldSpace;
+    _jolt_rvec3.Set(anchor[0], anchor[1], anchor[2]); s.mPoint1 = _jolt_rvec3; s.mPoint2 = _jolt_rvec3;
+    const c = s.Create(bodyA, bodyB); J.destroy(s);
+    state.physicsSystem.AddConstraint(c); return c;
+}
+
+export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: Jolt.Body, bodyB: Jolt.Body): Jolt.Constraint {
+    const J = jolt!;
+    const s = new J.HingeConstraintSettings();
+    s.mSpace = J.EConstraintSpace_WorldSpace;
+    _jolt_rvec3.Set(anchor[0], anchor[1], anchor[2]); s.mPoint1 = _jolt_rvec3; s.mPoint2 = _jolt_rvec3;
+    _jolt_vec3.Set(axis[0], axis[1], axis[2]); s.mHingeAxis1 = _jolt_vec3; s.mHingeAxis2 = _jolt_vec3;
+    const n: Vec3 = [0, 0, 0]; vec3.perpendicular(n, axis as Vec3);
+    _jolt_vec3.Set(n[0], n[1], n[2]); s.mNormalAxis1 = _jolt_vec3; s.mNormalAxis2 = _jolt_vec3;
+    const c = s.Create(bodyA, bodyB); J.destroy(s);
+    state.physicsSystem.AddConstraint(c); return c;
+}
+
+export function createFixedJoint(state: ImplState, bodyA: Jolt.Body, bodyB: Jolt.Body): Jolt.Constraint {
+    const J = jolt!;
+    const s = new J.FixedConstraintSettings();
+    s.mSpace = J.EConstraintSpace_WorldSpace;
+    const posA = bodyA.GetPosition();
+    _jolt_rvec3.Set(posA.GetX(), posA.GetY(), posA.GetZ()); s.mPoint1 = _jolt_rvec3; s.mPoint2 = _jolt_rvec3;
+    const rotA = bodyA.GetRotation();
+    _quat[0] = rotA.GetX(); _quat[1] = rotA.GetY(); _quat[2] = rotA.GetZ(); _quat[3] = rotA.GetW();
+    const axX: Vec3 = [0, 0, 0]; vec3.transformQuat(axX, [1, 0, 0], _quat);
+    const axY: Vec3 = [0, 0, 0]; vec3.transformQuat(axY, [0, 1, 0], _quat);
+    _jolt_vec3.Set(axX[0], axX[1], axX[2]); s.mAxisX1 = _jolt_vec3; s.mAxisX2 = _jolt_vec3;
+    _jolt_vec3.Set(axY[0], axY[1], axY[2]); s.mAxisY1 = _jolt_vec3; s.mAxisY2 = _jolt_vec3;
+    const c = s.Create(bodyA, bodyB); J.destroy(s);
+    state.physicsSystem.AddConstraint(c); return c;
+}
+
+export function createDistanceJoint(state: ImplState, anchorA: Vec3, anchorB: Vec3, minDistance: number | undefined, maxDistance: number | undefined, bodyA: Jolt.Body, bodyB: Jolt.Body): Jolt.Constraint {
+    const J = jolt!;
+    const s = new J.DistanceConstraintSettings();
+    s.mSpace = J.EConstraintSpace_WorldSpace;
+    _jolt_rvec3.Set(anchorA[0], anchorA[1], anchorA[2]); s.mPoint1 = _jolt_rvec3;
+    _jolt_rvec3.Set(anchorB[0], anchorB[1], anchorB[2]); s.mPoint2 = _jolt_rvec3;
+    s.mMinDistance = minDistance ?? -1;
+    s.mMaxDistance = maxDistance ?? -1;
+    const c = s.Create(bodyA, bodyB); J.destroy(s);
+    state.physicsSystem.AddConstraint(c); return c;
+}
+
+export function removeJoint(state: ImplState, handle: Jolt.Constraint): void {
+    state.physicsSystem.RemoveConstraint(handle);
+    // Do NOT call jolt.destroy() here — constraints are ref-counted and the
+    // base-class __destroy__ vtable entry mismatches derived types (FixedConstraint
+    // etc.), causing a WASM function signature error.
+}
+
+export function setHingeMotor(_state: ImplState, handle: Jolt.Constraint, desc: HingeMotorDesc): void {
+    const J = jolt!;
+    const hinge = J.castObject(handle, J.HingeConstraint);
+    if (desc.mode === 'off') {
+        hinge.SetMotorState(J.EMotorState_Off);
+    } else {
+        hinge.SetMotorState(J.EMotorState_Velocity);
+        hinge.SetTargetAngularVelocity(desc.speed);
+    }
+}
+
+export function setHingeLimits(_state: ImplState, handle: Jolt.Constraint, lower: number, upper: number): void {
+    const J = jolt!;
+    const hinge = J.castObject(handle, J.HingeConstraint);
+    hinge.SetLimits(lower, upper);
 }
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {

@@ -31,9 +31,9 @@ export const createCardHouseScenario = () =>
         init: (physics: PhysicsState, renderer: Renderer): null => {
             api.setGravity(physics, 0, -9.81, 0);
 
-            renderer.camera.position.set(2.4, 1.4, 2.4);
-            renderer.camera.lookAt(0.75, 0.6, 0);
-            renderer.controls.target.set(0.75, 0.6, 0);
+            renderer.camera.position.set(3.0, 2.0, 3.0);
+            renderer.camera.lookAt(0.95, 1.0, 0);
+            renderer.controls.target.set(0.95, 1.0, 0);
             renderer.controls.update();
 
             const floor = api.createShape(physics, { type: ShapeType.BOX, halfExtents: [10, 0.5, 10], convexRadius: 0.05 });
@@ -61,22 +61,33 @@ export const createCardHouseScenario = () =>
             const qA1 = quatZ(ANGLE1);
             const qA2 = quatZ(ANGLE2);
 
+            const α = Math.abs(ANGLE0);
+            // Half-extent of a leaning card projected to world Y (for floor clearance)
+            const leanedHalfY = CARD_HEIGHT * Math.cos(α) + CARD_THICKNESS * Math.sin(α);
+            // Half-extent of a leaning card projected to world X (base tip reach)
+            const leanedHalfX = CARD_HEIGHT * Math.sin(α) + CARD_THICKNESS * Math.cos(α);
+            // Step from \ to / centre so base corners just clear each other (~5 mm gap)
+            const pairStep = 2 * leanedHalfX + 0.002;
+
             let nb = 5;
             let z0 = 0;
-            let y = CARD_HEIGHT - 0.02;
+            let y = leanedHalfY; // cards rest exactly on floor, no penetration
+
             while (nb > 0) {
                 let z = z0;
                 for (let i = 0; i < nb; i++) {
                     if (i !== nb - 1) {
-                        card(z + 0.25, y + CARD_HEIGHT - 0.015, qA2); // flat bridging card
+                        // Flat card rests on A-frame apex; its world half-height = CARD_THICKNESS
+                        card(z + pairStep * 1.5, y + leanedHalfY + CARD_THICKNESS, qA2);
                     }
-                    card(z, y, qA1); // \ leaning card
-                    z += 0.175;
-                    card(z, y, qA0); // / leaning card
-                    z += 0.175;
+                    card(z, y, qA1);   // \ leaning card
+                    z += pairStep;
+                    card(z, y, qA0);   // / leaning card
+                    z += pairStep;     // inter-pair gap equals intra-pair step
                 }
-                y += CARD_HEIGHT * 2 - 0.03;
-                z0 += 0.175;
+                // Next layer rests on top of flat cards (top = y + leanedHalfY + 2*CARD_THICKNESS)
+                y += 2 * leanedHalfY + 2 * CARD_THICKNESS;
+                z0 += pairStep; // offset each row by one pair-step to interleave
                 nb--;
             }
 

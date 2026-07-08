@@ -17,8 +17,8 @@ const material = new THREE.MeshPhongMaterial({
 });
 
 const INITIAL_MAX_INSTANCES = 2000;
-const MAX_VERTICES = 100_000;
-const MAX_INDICES = 100_000;
+const INITIAL_MAX_VERTICES = 100_000;
+const INITIAL_MAX_INDICES = 100_000;
 
 const _position = new THREE.Vector3();
 const _quaternion = new THREE.Quaternion();
@@ -81,7 +81,9 @@ export function createRenderer(container?: HTMLElement): Renderer {
     scene.add(directionalLight);
 
     let maxInstances = INITIAL_MAX_INSTANCES;
-    let batchedMesh = new THREE.BatchedMesh(maxInstances, MAX_VERTICES, MAX_INDICES, material);
+    let maxVertices = INITIAL_MAX_VERTICES;
+    let maxIndices = INITIAL_MAX_INDICES;
+    let batchedMesh = new THREE.BatchedMesh(maxInstances, maxVertices, maxIndices, material);
     batchedMesh.castShadow = true;
     batchedMesh.receiveShadow = true;
     scene.add(batchedMesh);
@@ -91,6 +93,29 @@ export function createRenderer(container?: HTMLElement): Renderer {
 
     // Convex hull geometries keyed by the points array reference (object identity = unique shape)
     const convexGeometryMap = new Map<number[], { geometry: THREE.BufferGeometry; batchId: number }>();
+
+    // Rebuilds the BatchedMesh in-place, re-registering all existing geometries and instances.
+    // Call after growing maxInstances, maxVertices, or maxIndices, or after clearing convex shapes.
+    function rebuildBatchedMesh(): void {
+        scene.remove(batchedMesh);
+        batchedMesh.dispose();
+        batchedMesh = new THREE.BatchedMesh(maxInstances, maxVertices, maxIndices, material);
+        batchedMesh.castShadow = true;
+        batchedMesh.receiveShadow = true;
+        scene.add(batchedMesh);
+        boxGeometryId = batchedMesh.addGeometry(UNIT_BOX_GEOMETRY);
+        sphereGeometryId = batchedMesh.addGeometry(UNIT_SPHERE_GEOMETRY);
+        // Re-register convex hull geometries (Map iteration preserves insertion order,
+        // so batchIds stay consistent with existing bodyEntries.geometryId values).
+        for (const [, entry] of convexGeometryMap) {
+            entry.batchId = batchedMesh.addGeometry(entry.geometry);
+        }
+        // Re-add instances for all existing body entries
+        for (const [bodyId, entry] of bodyEntries) {
+            entry.instanceId = batchedMesh.addInstance(entry.geometryId);
+            instanceColors.delete(bodyId);
+        }
+    }
 
     function getOrCreateConvexGeometryId(points: number[]): number {
         const existing = convexGeometryMap.get(points);
@@ -102,44 +127,23 @@ export function createRenderer(container?: HTMLElement): Renderer {
         // ConvexGeometry is non-indexed; mergeVertices deduplicates and adds an index
         // so it is consistent with the indexed BoxGeometry/SphereGeometry in the BatchedMesh
         const geometry = mergeVertices(new ConvexGeometry(vecs));
-        const batchId = batchedMesh.addGeometry(geometry);
+        let batchId: number;
+        try {
+            batchId = batchedMesh.addGeometry(geometry);
+        } catch {
+            // Vertex/index buffer full — double both budgets and rebuild, then retry.
+            maxVertices *= 2;
+            maxIndices *= 2;
+            rebuildBatchedMesh();
+            batchId = batchedMesh.addGeometry(geometry);
+        }
         convexGeometryMap.set(points, { geometry, batchId });
         return batchId;
     }
 
     function resizeBatchedMesh(neededInstances: number): void {
-        // Grow to next power of two above neededInstances
         while (maxInstances < neededInstances) maxInstances *= 2;
-
-        scene.remove(batchedMesh);
-        batchedMesh.dispose();
-
-        batchedMesh = new THREE.BatchedMesh(maxInstances, MAX_VERTICES, MAX_INDICES, material);
-        batchedMesh.castShadow = true;
-        batchedMesh.receiveShadow = true;
-        scene.add(batchedMesh);
-
-        boxGeometryId = batchedMesh.addGeometry(UNIT_BOX_GEOMETRY);
-        sphereGeometryId = batchedMesh.addGeometry(UNIT_SPHERE_GEOMETRY);
-
-        // Re-register convex hull geometries and update their batch IDs
-        for (const [points, entry] of convexGeometryMap) {
-            entry.batchId = batchedMesh.addGeometry(entry.geometry);
-            // Update any existing body entries that reference the old batch ID
-            for (const bodyEntry of bodyEntries.values()) {
-                if (bodyEntry.geometryId === entry.batchId) {
-                    bodyEntry.geometryId = entry.batchId;
-                }
-            }
-            // Silence unused-variable warning — points is the map key
-            void points;
-        }
-
-        // Re-add instances for all existing entries
-        for (const [bodyId, entry] of bodyEntries) {
-            entry.instanceId = batchedMesh.addInstance(entry.geometryId);
-            instanceColors.delete(bodyId); // force color re-set on next update
-        }
+        rebuildBatchedMesh();
     }
 
     const bodyEntries = new Map<number, BodyEntry>();
@@ -248,14 +252,20 @@ export function createRenderer(container?: HTMLElement): Renderer {
     }
 
     function clear(): void {
-        for (const [_, entry] of bodyEntries) {
+        for (const [, entry] of bodyEntries) {
             batchedMesh.deleteInstance(entry.instanceId);
         }
         bodyEntries.clear();
         activeInstanceIds.clear();
         instanceColors.clear();
-        const im = (batchedMesh as any).instanceMatrix;
-        if (im) im.needsUpdate = true;
+        // BatchedMesh doesn't compact geometry buffer slots when instances are deleted,
+        // so convex hull geometries from the old scenario would permanently consume buffer
+        // space. Dispose them and rebuild to reclaim it for the next scenario.
+        if (convexGeometryMap.size > 0) {
+            for (const entry of convexGeometryMap.values()) entry.geometry.dispose();
+            convexGeometryMap.clear();
+            rebuildBatchedMesh();
+        }
     }
 
     function resetCamera(): void {

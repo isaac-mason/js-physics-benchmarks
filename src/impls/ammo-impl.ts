@@ -1,7 +1,11 @@
-import type { PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
-import { MotionType, ShapeType } from '../api';
+import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
+import { Capability, MotionType, ShapeType } from '../api';
+import { quat } from 'mathcat';
+import { rotateByConjugate, worldToLocal } from './impl-helpers';
 import ammoWasmUrl from '../lib/ammo/ammo.wasm.wasm?url';
 import { getAmmoFactory } from '../lib/ammo/ammo-factory';
+
+export const capabilities: ReadonlySet<Capability> = new Set([Capability.Raycast, Capability.ContactListener, Capability.HingeLimits, Capability.ConvexHull]);
 
 type Ammo = any;
 
@@ -267,6 +271,82 @@ export function setBodyTranslationRotation(state: ImplState, handle: AmmoBodyHan
     handle.body.setWorldTransform(state._tmpTransform);
     handle.body.getMotionState().setWorldTransform(state._tmpTransform);
     handle.body.activate(true);
+}
+
+function ammoGetBodyTransform(state: ImplState, handle: AmmoBodyHandle): { pos: Vec3; quat: Quat } {
+    handle.body.getMotionState().getWorldTransform(state._tmpTransform);
+    const o = state._tmpTransform.getOrigin();
+    const r = state._tmpTransform.getRotation();
+    return { pos: [o.x(), o.y(), o.z()], quat: [r.x(), r.y(), r.z(), r.w()] };
+}
+
+export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: AmmoBodyHandle, bodyB: AmmoBodyHandle): any {
+    const tA = ammoGetBodyTransform(state, bodyA), tB = ammoGetBodyTransform(state, bodyB);
+    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, tA.pos, tA.quat);
+    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, tB.pos, tB.quat);
+    const vA = new A.btVector3(lA[0], lA[1], lA[2]);
+    const vB = new A.btVector3(lB[0], lB[1], lB[2]);
+    const c = new A.btPoint2PointConstraint(bodyA.body, bodyB.body, vA, vB);
+    A.destroy(vA); A.destroy(vB);
+    state.world.addConstraint(c, true); return c;
+}
+
+export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: AmmoBodyHandle, bodyB: AmmoBodyHandle): any {
+    const tA = ammoGetBodyTransform(state, bodyA), tB = ammoGetBodyTransform(state, bodyB);
+    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, tA.pos, tA.quat);
+    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, tB.pos, tB.quat);
+    const axA: Vec3 = [0, 0, 0]; rotateByConjugate(axA, axis, tA.quat);
+    const axB: Vec3 = [0, 0, 0]; rotateByConjugate(axB, axis, tB.quat);
+    const vA = new A.btVector3(lA[0], lA[1], lA[2]), vB = new A.btVector3(lB[0], lB[1], lB[2]);
+    const aA = new A.btVector3(axA[0], axA[1], axA[2]), aB = new A.btVector3(axB[0], axB[1], axB[2]);
+    const c = new A.btHingeConstraint(bodyA.body, bodyB.body, vA, vB, aA, aB);
+    A.destroy(vA); A.destroy(vB); A.destroy(aA); A.destroy(aB);
+    state.world.addConstraint(c, true); return c;
+}
+
+export function createFixedJoint(state: ImplState, bodyA: AmmoBodyHandle, bodyB: AmmoBodyHandle): any {
+    const tA = ammoGetBodyTransform(state, bodyA), tB = ammoGetBodyTransform(state, bodyB);
+    // frame2 = conjB * qA so qB * frame2 = qA in world
+    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, tA.pos, tB.pos, tB.quat);
+    const _cB: Quat = [0, 0, 0, 1]; quat.conjugate(_cB, tB.quat);
+    const f2q: Quat = [0, 0, 0, 1]; quat.multiply(f2q, _cB, tA.quat);
+    const frameA = new A.btTransform(); frameA.setIdentity();
+    const originA = new A.btVector3(0, 0, 0); frameA.setOrigin(originA); A.destroy(originA);
+    const frameB = new A.btTransform(); frameB.setIdentity();
+    const originB = new A.btVector3(lB[0], lB[1], lB[2]); frameB.setOrigin(originB); A.destroy(originB);
+    const rotB = new A.btQuaternion(f2q[0], f2q[1], f2q[2], f2q[3]); frameB.setRotation(rotB); A.destroy(rotB);
+    const c = new A.btFixedConstraint(bodyA.body, bodyB.body, frameA, frameB);
+    A.destroy(frameA); A.destroy(frameB);
+    state.world.addConstraint(c, true); return c;
+}
+
+export function createDistanceJoint(state: ImplState, anchorA: Vec3, anchorB: Vec3, _minDist: number | undefined, _maxDist: number | undefined, bodyA: AmmoBodyHandle, bodyB: AmmoBodyHandle): any {
+    // Ammo has no native distance constraint; use point-to-point at anchorA
+    const tA = ammoGetBodyTransform(state, bodyA), tB = ammoGetBodyTransform(state, bodyB);
+    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchorA, tA.pos, tA.quat);
+    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchorB, tB.pos, tB.quat);
+    const vA = new A.btVector3(lA[0], lA[1], lA[2]);
+    const vB = new A.btVector3(lB[0], lB[1], lB[2]);
+    const c = new A.btPoint2PointConstraint(bodyA.body, bodyB.body, vA, vB);
+    A.destroy(vA); A.destroy(vB);
+    state.world.addConstraint(c, true); return c;
+}
+
+export function removeJoint(state: ImplState, handle: any): void {
+    state.world.removeConstraint(handle);
+    A.destroy(handle);
+}
+
+export function setHingeMotor(_state: ImplState, handle: any, desc: HingeMotorDesc): void {
+    if (desc.mode === 'off') {
+        handle.enableAngularMotor(false, 0, 0);
+    } else {
+        handle.enableAngularMotor(true, desc.speed, desc.maxTorque);
+    }
+}
+
+export function setHingeLimits(_state: ImplState, handle: any, lower: number, upper: number): void {
+    handle.setLimit(lower, upper);
 }
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {

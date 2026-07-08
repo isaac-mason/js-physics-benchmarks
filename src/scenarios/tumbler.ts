@@ -25,12 +25,14 @@ function quatZ(angle: number): Quat {
     return [0, 0, Math.sin(angle / 2), Math.cos(angle / 2)];
 }
 
-// Four walls of the square tube, as (localPos, localHalfExtents).
+// Six walls of the closed square tube, as (localPos, localHalfExtents).
 const WALLS: { pos: Vec3; half: Vec3 }[] = [
-    { pos: [0, S, 0], half: [S + WALL_T, WALL_T, WALL_D] }, // top
+    { pos: [0,  S, 0], half: [S + WALL_T, WALL_T, WALL_D] }, // top
     { pos: [0, -S, 0], half: [S + WALL_T, WALL_T, WALL_D] }, // bottom
     { pos: [-S, 0, 0], half: [WALL_T, S + WALL_T, WALL_D] }, // left
-    { pos: [S, 0, 0], half: [WALL_T, S + WALL_T, WALL_D] }, // right
+    { pos: [ S, 0, 0], half: [WALL_T, S + WALL_T, WALL_D] }, // right
+    { pos: [0, 0,  WALL_D], half: [S, S, WALL_T] },           // front cap
+    { pos: [0, 0, -WALL_D], half: [S, S, WALL_T] },           // back cap
 ];
 
 type ScenarioState = {
@@ -45,20 +47,34 @@ type Controls = { boxes: number; speed: number };
 
 function buildBoxes(physics: PhysicsState, boxShapeId: number, n: number): number[] {
     const boxes: number[] = [];
-    const perRow = 8;
-    for (let i = 0; i < n; i++) {
-        const col = i % perRow;
-        const row = Math.floor(i / perRow);
-        boxes.push(
-            api.createRigidBody(physics, {
-                shape: boxShapeId,
-                motionType: MotionType.DYNAMIC,
-                position: [(col - perRow / 2) * (BOX_HALF * 2.2), 2 + row * (BOX_HALF * 2.2), 0],
-                mass: 1,
-                friction: 0.4,
-                restitution: 0,
-            }),
-        );
+    const step = BOX_HALF * 2.2;
+    // Inscribed-circle radius of the drum interior, shrunk by box diagonal so a box
+    // corner never exits the drum regardless of rotation angle.
+    const safeR = (S - WALL_T) - BOX_HALF * Math.SQRT2 - 0.1;
+    const zInner = WALL_D * 0.5 - BOX_HALF - 0.1; // spawn only in centre half of tube
+    const xyN = Math.ceil(safeR / step);
+    const zN  = Math.floor(zInner / step);
+    const safeR2 = safeR * safeR;
+    let spawned = 0;
+    outer:
+    for (let iz = -zN; iz <= zN; iz++) {
+        for (let iy = -xyN; iy <= xyN; iy++) {
+            for (let ix = -xyN; ix <= xyN; ix++) {
+                if ((ix * step) ** 2 + (iy * step) ** 2 > safeR2) continue;
+                if (spawned >= n) break outer;
+                boxes.push(
+                    api.createRigidBody(physics, {
+                        shape: boxShapeId,
+                        motionType: MotionType.DYNAMIC,
+                        position: [ix * step, iy * step, iz * step],
+                        mass: 1,
+                        friction: 0.4,
+                        restitution: 0,
+                    }),
+                );
+                spawned++;
+            }
+        }
     }
     return boxes;
 }

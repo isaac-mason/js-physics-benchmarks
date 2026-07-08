@@ -1,7 +1,10 @@
 import * as CANNON from 'cannon-es';
 import { quickhull3 } from 'mathcat';
-import type { PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
-import { MotionType, ShapeType } from '../api';
+import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
+import { Capability, MotionType, ShapeType } from '../api';
+import { rotateByConjugate, worldToLocal } from './impl-helpers';
+
+export const capabilities: ReadonlySet<Capability> = new Set([Capability.Raycast, Capability.ContactListener, Capability.ConvexHull]);
 
 type ImplState = {
     world: CANNON.World;
@@ -174,6 +177,67 @@ const _raycastClosest_rayFrom = new CANNON.Vec3();
 const _raycastClosest_rayTo = new CANNON.Vec3();
 const _raycastClosest_raycastResult = new CANNON.RaycastResult();
 const _raycastClosest_raycastOptions = {};
+
+function cannonTransforms(bodyA: CANNON.Body, bodyB: CANNON.Body) {
+    return {
+        pA: [bodyA.position.x, bodyA.position.y, bodyA.position.z] as Vec3,
+        qA: [bodyA.quaternion.x, bodyA.quaternion.y, bodyA.quaternion.z, bodyA.quaternion.w] as Quat,
+        pB: [bodyB.position.x, bodyB.position.y, bodyB.position.z] as Vec3,
+        qB: [bodyB.quaternion.x, bodyB.quaternion.y, bodyB.quaternion.z, bodyB.quaternion.w] as Quat,
+    };
+}
+
+export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: CANNON.Body, bodyB: CANNON.Body): CANNON.Constraint {
+    const { pA, qA, pB, qB } = cannonTransforms(bodyA, bodyB);
+    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, pA, qA);
+    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, pB, qB);
+    const c = new CANNON.PointToPointConstraint(bodyA, new CANNON.Vec3(...lA), bodyB, new CANNON.Vec3(...lB));
+    state.world.addConstraint(c); return c;
+}
+
+export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: CANNON.Body, bodyB: CANNON.Body): CANNON.Constraint {
+    const { pA, qA, pB, qB } = cannonTransforms(bodyA, bodyB);
+    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, pA, qA);
+    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, pB, qB);
+    const axA: Vec3 = [0, 0, 0]; rotateByConjugate(axA, axis, qA);
+    const axB: Vec3 = [0, 0, 0]; rotateByConjugate(axB, axis, qB);
+    const c = new CANNON.HingeConstraint(bodyA, bodyB, {
+        pivotA: new CANNON.Vec3(...lA), pivotB: new CANNON.Vec3(...lB),
+        axisA: new CANNON.Vec3(...axA), axisB: new CANNON.Vec3(...axB),
+    });
+    state.world.addConstraint(c); return c;
+}
+
+export function createFixedJoint(state: ImplState, bodyA: CANNON.Body, bodyB: CANNON.Body): CANNON.Constraint {
+    const c = new CANNON.LockConstraint(bodyA, bodyB);
+    state.world.addConstraint(c); return c;
+}
+
+export function createDistanceJoint(state: ImplState, anchorA: Vec3, anchorB: Vec3, _minDist: number | undefined, maxDistance: number | undefined, bodyA: CANNON.Body, bodyB: CANNON.Body): CANNON.Constraint {
+    const dx = anchorA[0] - anchorB[0], dy = anchorA[1] - anchorB[1], dz = anchorA[2] - anchorB[2];
+    const dist = maxDistance ?? Math.sqrt(dx * dx + dy * dy + dz * dz);
+    const c = new CANNON.DistanceConstraint(bodyA, bodyB, dist);
+    state.world.addConstraint(c); return c;
+}
+
+export function removeJoint(state: ImplState, handle: CANNON.Constraint): void {
+    state.world.removeConstraint(handle);
+}
+
+export function setHingeMotor(_state: ImplState, handle: CANNON.Constraint, desc: HingeMotorDesc): void {
+    const h = handle as CANNON.HingeConstraint;
+    if (desc.mode === 'off') {
+        h.disableMotor();
+    } else {
+        h.enableMotor();
+        h.setMotorSpeed(desc.speed);
+        h.setMotorMaxForce(desc.maxTorque);
+    }
+}
+
+export function setHingeLimits(_state: ImplState, _handle: CANNON.Constraint, _lower: number, _upper: number): void {
+    // cannon-es has no native hinge limit API
+}
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {
     _raycastClosest_rayFrom.set(origin[0], origin[1], origin[2]);

@@ -4,6 +4,47 @@ export type Vec3 = [x: number, y: number, z: number];
 
 export type Quat = [x: number, y: number, z: number, w: number];
 
+export type HingeMotorDesc = { mode: 'velocity'; speed: number; maxTorque: number } | { mode: 'off' };
+
+export enum Capability {
+    Raycast = 'Raycast',
+    ContactListener = 'ContactListener',
+    HingeLimits = 'HingeLimits',
+    ConvexHull = 'ConvexHull',
+}
+
+export enum JointType {
+    POINT = 0,
+    HINGE = 1,
+    FIXED = 2,
+    DISTANCE = 3,
+}
+
+export type PointJointDesc = {
+    type: JointType.POINT;
+    anchor: Vec3;
+};
+
+export type HingeJointDesc = {
+    type: JointType.HINGE;
+    anchor: Vec3;
+    axis: Vec3;
+};
+
+export type FixedJointDesc = {
+    type: JointType.FIXED;
+};
+
+export type DistanceJointDesc = {
+    type: JointType.DISTANCE;
+    anchorA: Vec3;
+    anchorB: Vec3;
+    minDistance?: number;
+    maxDistance?: number;
+};
+
+export type JointDesc = PointJointDesc | HingeJointDesc | FixedJointDesc | DistanceJointDesc;
+
 export enum MotionType {
     STATIC = 0,
     DYNAMIC = 1,
@@ -63,13 +104,13 @@ export type RigidBodyOptions = {
 const DEFAULT_FRICTION = 0.5;
 const DEFAULT_RESTITUTION = 0.0;
 
-type ShapeEntry = {
-    implHandle: any;
+type ShapeEntry<TShape extends object> = {
+    implHandle: TShape;
     desc: PhysicsShape;
 };
 
-export type BodyState = {
-    handle: any;
+export type BodyState<TBody extends object = object> = {
+    handle: TBody;
     shapeDesc: PhysicsShape;
     motionType: MotionType;
     position: Vec3;
@@ -78,23 +119,35 @@ export type BodyState = {
     prevQuaternion: Quat;
 };
 
-export type PhysicsState = {
-    impl: PhysicsImpl;
-    world: any;
-    bodies: Map<number, BodyState>;
+type ConstraintEntry<TJoint extends object> = { type: JointType; implHandle: TJoint };
+
+export type PhysicsState<
+    TWorld = unknown,
+    TBody extends object = object,
+    TJoint extends object = object,
+    TShape extends object = object,
+> = {
+    impl: PhysicsImpl<TWorld, TBody, TJoint, TShape>;
+    world: TWorld;
+    bodies: Map<number, BodyState<TBody>>;
     nextBodyId: number;
-    handleToBodyId: Map<any, number>;
+    handleToBodyId: Map<TBody, number>;
     contactCallback: ((bodyIdA: number, bodyIdB: number) => void) | null;
-    shapes: Map<number, ShapeEntry>;
+    shapes: Map<number, ShapeEntry<TShape>>;
     nextShapeId: number;
+    constraints: Map<number, ConstraintEntry<TJoint>>;
+    nextConstraintId: number;
 };
 
 const _pos: Vec3 = [0, 0, 0];
 const _quat: Quat = [0, 0, 0, 1];
 
-export function createPhysicsState(impl: PhysicsImpl, world: any): PhysicsState {
-    const handleToBodyId = new Map<any, number>();
-    const state: PhysicsState = {
+export function createPhysicsState<W, B extends object, J extends object, S extends object>(
+    impl: PhysicsImpl<W, B, J, S>,
+    world: W,
+): PhysicsState<W, B, J, S> {
+    const handleToBodyId = new Map<B, number>();
+    const state: PhysicsState<W, B, J, S> = {
         impl,
         world,
         bodies: new Map(),
@@ -103,6 +156,8 @@ export function createPhysicsState(impl: PhysicsImpl, world: any): PhysicsState 
         contactCallback: null,
         shapes: new Map(),
         nextShapeId: 0,
+        constraints: new Map(),
+        nextConstraintId: 0,
     };
 
     impl.onContactAdded(world, (hA, hB) => {
@@ -116,25 +171,25 @@ export function createPhysicsState(impl: PhysicsImpl, world: any): PhysicsState 
     return state;
 }
 
-export function setGravity(state: PhysicsState, x: number, y: number, z: number): void {
+export function setGravity<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, x: number, y: number, z: number): void {
     state.impl.setGravity(state.world, x, y, z);
 }
 
-export function createShape(state: PhysicsState, desc: PhysicsShape): number {
+export function createShape<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, desc: PhysicsShape): number {
     const implHandle = state.impl.createShape(state.world, desc);
     const shapeId = state.nextShapeId++;
     state.shapes.set(shapeId, { implHandle, desc });
     return shapeId;
 }
 
-export function destroyShape(state: PhysicsState, shapeId: number): void {
+export function destroyShape<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, shapeId: number): void {
     const entry = state.shapes.get(shapeId);
     if (!entry) return;
     state.impl.destroyShape(state.world, entry.implHandle);
     state.shapes.delete(shapeId);
 }
 
-export function createRigidBody(state: PhysicsState, options: RigidBodyOptions): number {
+export function createRigidBody<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, options: RigidBodyOptions): number {
     const shapeEntry = state.shapes.get(options.shape);
     if (!shapeEntry) throw new Error(`createRigidBody: unknown shape id ${options.shape}`);
     const normalised: RigidBodyOptions = {
@@ -161,7 +216,7 @@ export function createRigidBody(state: PhysicsState, options: RigidBodyOptions):
     return bodyId;
 }
 
-export function removeRigidBody(state: PhysicsState, bodyId: number): void {
+export function removeRigidBody<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyId: number): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;
     state.impl.removeRigidBody(state.world, body.handle);
@@ -169,7 +224,7 @@ export function removeRigidBody(state: PhysicsState, bodyId: number): void {
     state.bodies.delete(bodyId);
 }
 
-export function getBodyPosition(out: Vec3, state: PhysicsState, bodyId: number): void {
+export function getBodyPosition<W, B extends object, J extends object, S extends object>(out: Vec3, state: PhysicsState<W, B, J, S>, bodyId: number): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;
     out[0] = body.position[0];
@@ -177,7 +232,7 @@ export function getBodyPosition(out: Vec3, state: PhysicsState, bodyId: number):
     out[2] = body.position[2];
 }
 
-export function getBodyQuaternion(out: Quat, state: PhysicsState, bodyId: number): void {
+export function getBodyQuaternion<W, B extends object, J extends object, S extends object>(out: Quat, state: PhysicsState<W, B, J, S>, bodyId: number): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;
     out[0] = body.quaternion[0];
@@ -186,7 +241,7 @@ export function getBodyQuaternion(out: Quat, state: PhysicsState, bodyId: number
     out[3] = body.quaternion[3];
 }
 
-export function setBodyPosition(state: PhysicsState, bodyId: number, position: Vec3): void {
+export function setBodyPosition<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyId: number, position: Vec3): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;
     state.impl.setBodyPosition(state.world, body.handle, position);
@@ -195,7 +250,7 @@ export function setBodyPosition(state: PhysicsState, bodyId: number, position: V
     body.prevPosition[2] = body.position[2] = position[2];
 }
 
-export function setBodyQuaternion(state: PhysicsState, bodyId: number, quaternion: Quat): void {
+export function setBodyQuaternion<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyId: number, quaternion: Quat): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;
     state.impl.setBodyQuaternion(state.world, body.handle, quaternion);
@@ -205,25 +260,25 @@ export function setBodyQuaternion(state: PhysicsState, bodyId: number, quaternio
     body.prevQuaternion[3] = body.quaternion[3] = quaternion[3];
 }
 
-export function setBodyLinearVelocity(state: PhysicsState, bodyId: number, velocity: Vec3): void {
+export function setBodyLinearVelocity<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyId: number, velocity: Vec3): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;
     state.impl.setBodyLinearVelocity(state.world, body.handle, velocity);
 }
 
-export function applyImpulse(state: PhysicsState, bodyId: number, impulse: Vec3): void {
+export function applyImpulse<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyId: number, impulse: Vec3): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;
     state.impl.applyImpulse(state.world, body.handle, impulse);
 }
 
-export function getBodyLinearVelocity(out: Vec3, state: PhysicsState, bodyId: number): void {
+export function getBodyLinearVelocity<W, B extends object, J extends object, S extends object>(out: Vec3, state: PhysicsState<W, B, J, S>, bodyId: number): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;
     state.impl.getBodyLinearVelocity(out, state.world, body.handle);
 }
 
-export function setBodyTranslationRotation(state: PhysicsState, bodyId: number, position: Vec3, quaternion: Quat): void {
+export function setBodyTranslationRotation<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyId: number, position: Vec3, quaternion: Quat): void {
     const body = state.bodies.get(bodyId);
     if (!body) return;
     state.impl.setBodyTranslationRotation(state.world, body.handle, position, quaternion);
@@ -236,9 +291,9 @@ export function setBodyTranslationRotation(state: PhysicsState, bodyId: number, 
     body.prevQuaternion[3] = body.quaternion[3] = quaternion[3];
 }
 
-export function raycastClosest(
+export function raycastClosest<W, B extends object, J extends object, S extends object>(
     out: RaycastResult,
-    state: PhysicsState,
+    state: PhysicsState<W, B, J, S>,
     origin: Vec3,
     direction: Vec3,
     maxDistance: number,
@@ -246,11 +301,76 @@ export function raycastClosest(
     state.impl.raycastClosest(out, state.world, origin, direction, maxDistance);
 }
 
-export function onContactAdded(state: PhysicsState, callback: (bodyIdA: number, bodyIdB: number) => void): void {
+export function onContactAdded<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, callback: (bodyIdA: number, bodyIdB: number) => void): void {
     state.contactCallback = callback;
 }
 
-export function snapshot(state: PhysicsState): void {
+function _bodies<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyIdA: number, bodyIdB: number, ctx: string): [B, B] {
+    const bodyA = state.bodies.get(bodyIdA);
+    const bodyB = state.bodies.get(bodyIdB);
+    if (!bodyA || !bodyB) throw new Error(`${ctx}: unknown body id`);
+    return [bodyA.handle, bodyB.handle];
+}
+
+function _addJoint<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, type: JointType, implHandle: J): number {
+    const id = state.nextConstraintId++;
+    state.constraints.set(id, { type, implHandle });
+    return id;
+}
+
+export function createHingeConstraint<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyIdA: number, bodyIdB: number, anchor: Vec3, axis: Vec3): number {
+    const [bA, bB] = _bodies(state, bodyIdA, bodyIdB, 'createHingeConstraint');
+    return _addJoint(state, JointType.HINGE, state.impl.createHingeJoint(state.world, anchor, axis, bA, bB));
+}
+
+export function createFixedConstraint<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyIdA: number, bodyIdB: number): number {
+    const [bA, bB] = _bodies(state, bodyIdA, bodyIdB, 'createFixedConstraint');
+    return _addJoint(state, JointType.FIXED, state.impl.createFixedJoint(state.world, bA, bB));
+}
+
+export function createPointConstraint<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyIdA: number, bodyIdB: number, anchor: Vec3): number {
+    const [bA, bB] = _bodies(state, bodyIdA, bodyIdB, 'createPointConstraint');
+    return _addJoint(state, JointType.POINT, state.impl.createPointJoint(state.world, anchor, bA, bB));
+}
+
+export function createDistanceConstraint<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, bodyIdA: number, bodyIdB: number, anchorA: Vec3, anchorB: Vec3, minDistance?: number, maxDistance?: number): number {
+    const [bA, bB] = _bodies(state, bodyIdA, bodyIdB, 'createDistanceConstraint');
+    return _addJoint(state, JointType.DISTANCE, state.impl.createDistanceJoint(state.world, anchorA, anchorB, minDistance, maxDistance, bA, bB));
+}
+
+export function removeConstraint<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, id: number): void {
+    const entry = state.constraints.get(id);
+    if (!entry) return;
+    state.impl.removeJoint(state.world, entry.implHandle);
+    state.constraints.delete(id);
+}
+
+export function setHingeMotor<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, id: number, desc: HingeMotorDesc): void {
+    const entry = state.constraints.get(id);
+    if (!entry || entry.type !== JointType.HINGE) return;
+    state.impl.setHingeMotor(state.world, entry.implHandle, desc);
+}
+
+export function setHingeLimits<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, id: number, lower: number, upper: number): void {
+    const entry = state.constraints.get(id);
+    if (!entry || entry.type !== JointType.HINGE) return;
+    state.impl.setHingeLimits(state.world, entry.implHandle, lower, upper);
+}
+
+export function createJoint<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, desc: JointDesc, bodyIdA: number, bodyIdB: number): number {
+    switch (desc.type) {
+        case JointType.POINT:    return createPointConstraint(state, bodyIdA, bodyIdB, desc.anchor);
+        case JointType.HINGE:    return createHingeConstraint(state, bodyIdA, bodyIdB, desc.anchor, desc.axis);
+        case JointType.FIXED:    return createFixedConstraint(state, bodyIdA, bodyIdB);
+        case JointType.DISTANCE: return createDistanceConstraint(state, bodyIdA, bodyIdB, desc.anchorA, desc.anchorB, desc.minDistance, desc.maxDistance);
+    }
+}
+
+export function removeJoint<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>, jointId: number): void {
+    removeConstraint(state, jointId);
+}
+
+export function snapshot<W, B extends object, J extends object, S extends object>(state: PhysicsState<W, B, J, S>): void {
     for (const body of state.bodies.values()) {
         body.prevPosition[0] = body.position[0];
         body.prevPosition[1] = body.position[1];

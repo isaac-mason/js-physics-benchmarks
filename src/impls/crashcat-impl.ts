@@ -1,6 +1,15 @@
 import * as crashcat from 'crashcat';
-import type { PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
-import { MotionType, ShapeType } from '../api';
+import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
+import { Capability, JointType, MotionType, ShapeType } from '../api';
+import { vec3 } from 'mathcat';
+
+export const capabilities: ReadonlySet<Capability> = new Set([Capability.Raycast, Capability.ContactListener, Capability.HingeLimits, Capability.ConvexHull]);
+
+type CrashcatJointHandle =
+    | { type: JointType.POINT; constraint: crashcat.PointConstraint }
+    | { type: JointType.HINGE; constraint: crashcat.HingeConstraint }
+    | { type: JointType.FIXED; constraint: crashcat.FixedConstraint }
+    | { type: JointType.DISTANCE; constraint: crashcat.DistanceConstraint };
 
 type ImplState = {
     world: crashcat.World;
@@ -159,6 +168,75 @@ export function setBodyTranslationRotation(state: ImplState, handle: RigidBody, 
 
 const _raycastClosest_closestCollector = crashcat.createClosestCastRayCollector();
 const _raycastClosest_castRaySettings = crashcat.createDefaultCastRaySettings();
+
+export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: RigidBody, bodyB: RigidBody): CrashcatJointHandle {
+    return {
+        type: JointType.POINT,
+        constraint: crashcat.pointConstraint.create(state.world, { bodyIdA: bodyA.id, bodyIdB: bodyB.id, pointA: anchor, pointB: anchor }),
+    };
+}
+
+export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: RigidBody, bodyB: RigidBody): CrashcatJointHandle {
+    const n: Vec3 = [0, 0, 0]; vec3.perpendicular(n, axis);
+    return {
+        type: JointType.HINGE,
+        constraint: crashcat.hingeConstraint.create(state.world, {
+            bodyIdA: bodyA.id, bodyIdB: bodyB.id,
+            pointA: anchor, pointB: anchor,
+            hingeAxisA: axis, hingeAxisB: axis,
+            normalAxisA: n, normalAxisB: n,
+        }),
+    };
+}
+
+export function createFixedJoint(state: ImplState, bodyA: RigidBody, bodyB: RigidBody): CrashcatJointHandle {
+    return {
+        type: JointType.FIXED,
+        constraint: crashcat.fixedConstraint.create(state.world, {
+            bodyIdA: bodyA.id, bodyIdB: bodyB.id,
+            // World-space points at body A's center — crashcat converts to local frames internally.
+            point1: bodyA.position, point2: bodyA.position,
+        }),
+    };
+}
+
+export function createDistanceJoint(state: ImplState, anchorA: Vec3, anchorB: Vec3, minDistance: number | undefined, maxDistance: number | undefined, bodyA: RigidBody, bodyB: RigidBody): CrashcatJointHandle {
+    return {
+        type: JointType.DISTANCE,
+        constraint: crashcat.distanceConstraint.create(state.world, {
+            bodyIdA: bodyA.id, bodyIdB: bodyB.id,
+            pointA: anchorA, pointB: anchorB,
+            minDistance: minDistance ?? -1, maxDistance: maxDistance ?? -1,
+        }),
+    };
+}
+
+export function removeJoint(state: ImplState, handle: CrashcatJointHandle): void {
+    switch (handle.type) {
+        case JointType.POINT: crashcat.pointConstraint.remove(state.world, handle.constraint); break;
+        case JointType.HINGE: crashcat.hingeConstraint.remove(state.world, handle.constraint); break;
+        case JointType.FIXED: crashcat.fixedConstraint.remove(state.world, handle.constraint); break;
+        case JointType.DISTANCE: crashcat.distanceConstraint.remove(state.world, handle.constraint); break;
+    }
+}
+
+export function setHingeMotor(_state: ImplState, handle: CrashcatJointHandle, desc: HingeMotorDesc): void {
+    if (handle.type !== JointType.HINGE) return;
+    const c = handle.constraint;
+    if (desc.mode === 'off') {
+        crashcat.hingeConstraint.setMotorState(c, crashcat.MotorState.OFF);
+    } else {
+        c.motorSettings.maxTorqueLimit = desc.maxTorque;
+        c.motorSettings.minTorqueLimit = -desc.maxTorque;
+        crashcat.hingeConstraint.setMotorState(c, crashcat.MotorState.VELOCITY);
+        crashcat.hingeConstraint.setTargetAngularVelocity(c, desc.speed);
+    }
+}
+
+export function setHingeLimits(_state: ImplState, handle: CrashcatJointHandle, lower: number, upper: number): void {
+    if (handle.type !== JointType.HINGE) return;
+    crashcat.hingeConstraint.setLimits(handle.constraint, lower, upper);
+}
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {
     _raycastClosest_closestCollector.reset();

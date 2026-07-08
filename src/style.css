@@ -179,6 +179,50 @@ canvas {
     color: #3dd6c9;
 }
 
+.scenario-item.unsupported:not(.active) {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.scenario-item.unsupported:not(.active):hover {
+    color: #cfcfcf;
+}
+
+#unsupported-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    pointer-events: none;
+}
+
+#unsupported-overlay.visible {
+    display: flex;
+}
+
+.unsupported-banner {
+    background: rgba(20, 20, 20, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 18px 28px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.unsupported-title {
+    font-size: 13px;
+    color: #e0e0e0;
+}
+
+.unsupported-missing {
+    font-size: 12px;
+    color: #f87171;
+}
+
 /* Engine tiles (inside the engine panel) — the original card layout, wrapped
    into a grid that uses as much width as the viewport allows. -------------- */
 

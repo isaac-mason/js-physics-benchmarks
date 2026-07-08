@@ -1,7 +1,7 @@
 import GUI from 'lil-gui';
 import bundleSizes from '../bundle-sizes/results.json';
 import type { PhysicsState } from './api';
-import { createPhysicsState, snapshot } from './api';
+import { Capability, createPhysicsState, snapshot } from './api';
 import * as ammo from './impls/ammo-impl';
 import * as bounce from './impls/bounce-impl';
 import * as box3d from './impls/box3d-impl';
@@ -38,6 +38,17 @@ import { createTenThousandScenario } from './scenarios/ten-thousand';
 import { createTumblerScenario } from './scenarios/tumbler';
 import { createWindScenario } from './scenarios/wind';
 import { createStableStackingScenario } from './scenarios/stable-stacking';
+import { createHingeBridgeScenario } from './scenarios/hinge-bridge';
+
+import { createFixedTorusScenario } from './scenarios/fixed-torus';
+import { createHingeJointChainScenario } from './scenarios/hinge-joint-chain';
+import { createCatenaryBridgeScenario } from './scenarios/catenary-bridge';
+import { createSphericalJointNetScenario } from './scenarios/spherical-joint-net';
+import { createSphericalJointNet2Scenario } from './scenarios/spherical-joint-net2';
+import { createStableSphericalChainScenario } from './scenarios/stable-spherical-chain';
+import { createFixedJointsTorusStressScenario } from './scenarios/fixed-joints-torus-stress';
+import { createDistanceJointScenario } from './scenarios/distance-joint';
+import { createLimitedHingeJointScenario } from './scenarios/limited-hinge-joint';
 import type { Scenario } from './scenarios/types';
 import { createStats } from './stats';
 
@@ -76,7 +87,7 @@ const SCENARIOS = [
     { id: 'wind',               label: 'Wind',               category: 'Benchmark', create: createWindScenario },
 
     { id: 'pyramid',            label: 'Pyramid',            category: 'Stacking', create: createPyramidScenario },
-    { id: 'stable-stacking',    label: 'Stacking Stability', category: 'Stacking', create: createStableStackingScenario },
+    { id: 'stable-stacking',    label: 'Box Stack',          category: 'Stacking', create: createStableStackingScenario },
     { id: 'jenga',              label: 'Jenga Stack',        category: 'Stacking', create: createJengaScenario },
     { id: 'stacked-spheres',    label: 'Stacked Spheres',    category: 'Stacking', create: createStackedSpheresScenario },
     { id: 'candy-cups',         label: 'Candy Cups',         category: 'Stacking', create: createCandyCupsScenario },
@@ -89,11 +100,23 @@ const SCENARIOS = [
     { id: 'initial-penetration', label: 'Initial Penetration', category: 'Behavior', create: createInitialPenetrationScenario },
     { id: 'dominoes',           label: 'Dominoes',           category: 'Behavior', create: createDominoesScenario },
 
-    { id: 'raycasts',           label: 'Raycasts',           category: 'Query', create: createRaycastsScenario },
-    { id: 'ray-curtain',        label: 'Ray Curtain',        category: 'Query', create: createRayCurtainScenario },
-    { id: 'sea-of-static-boxes', label: 'Sea of Static Boxes', category: 'Query', create: createSeaOfStaticBoxesScenario },
+    { id: 'raycasts',           label: 'Raycasts',           category: 'Query',  create: createRaycastsScenario,        requires: [Capability.Raycast] },
+    { id: 'ray-curtain',        label: 'Ray Curtain',        category: 'Query',  create: createRayCurtainScenario,      requires: [Capability.Raycast] },
+    { id: 'sea-of-static-boxes', label: 'Sea of Static Boxes', category: 'Query', create: createSeaOfStaticBoxesScenario, requires: [Capability.Raycast] },
 
-    { id: 'contact-listeners',  label: 'Contact Listeners',  category: 'Events', create: createContactListenersScenario },
+    { id: 'contact-listeners',  label: 'Contact Listeners',  category: 'Events', create: createContactListenersScenario, requires: [Capability.ContactListener] },
+
+    { id: 'hinge-bridge',       label: 'Hinge Bridge',       category: 'Joints', create: createHingeBridgeScenario },
+
+    { id: 'fixed-torus',        label: 'Fixed Torus',        category: 'Joints', create: createFixedTorusScenario },
+    { id: 'hinge-joint-chain',  label: 'Hinge Joint Chain',  category: 'Joints', create: createHingeJointChainScenario },
+    { id: 'catenary-bridge',    label: 'Catenary Bridge',    category: 'Joints', create: createCatenaryBridgeScenario },
+    { id: 'spherical-joint-net', label: 'Spherical Net',     category: 'Joints', create: createSphericalJointNetScenario },
+    { id: 'spherical-joint-net2', label: 'Spherical Net 2',  category: 'Joints', create: createSphericalJointNet2Scenario },
+    { id: 'stable-spherical-chain', label: 'Spherical Chain',        category: 'Joints', create: createStableSphericalChainScenario },
+    { id: 'fixed-joints-torus-stress', label: 'Fixed Torus Stress', category: 'Joints', create: createFixedJointsTorusStressScenario },
+    { id: 'distance-joint',       label: 'Distance Joint',     category: 'Joints', create: createDistanceJointScenario },
+    { id: 'limited-hinge-joint',  label: 'Limited Hinge',      category: 'Joints', create: createLimitedHingeJointScenario, requires: [Capability.HingeLimits] },
 ]
 
 function fmtKb(bytes: number): string {
@@ -185,6 +208,58 @@ const fmtOrDash = (b: number | null): string => (b != null ? fmtKb(b) : '—');
 
 const scenarioLabel = (id: string): string => SCENARIOS.find((s) => s.id === id)?.label ?? id;
 const engineLabelOf = (id: string): string => ENGINES.find((e) => e.id === id)?.label ?? id;
+
+// --- capability checking ---
+const ENGINE_CAPABILITIES: Record<string, ReadonlySet<Capability>> = {
+    ammo:     ammo.capabilities,
+    bounce:   bounce.capabilities,
+    box3d:    box3d.capabilities,
+    cannon:   cannon.capabilities,
+    crashcat: crashcat.capabilities,
+    jolt:     jolt.capabilities,
+    meep:     meep.capabilities,
+    rapier:   rapier.capabilities,
+};
+
+function missingCapabilities(engineId: string, scenarioId: string): Capability[] {
+    const entry = SCENARIOS.find((s) => s.id === scenarioId);
+    if (!entry?.requires?.length) return [];
+    const caps = ENGINE_CAPABILITIES[engineId] ?? new Set();
+    return entry.requires.filter((c) => !caps.has(c));
+}
+
+function scenarioSupported(engineId: string, scenarioId: string): boolean {
+    return missingCapabilities(engineId, scenarioId).length === 0;
+}
+
+// --- unsupported overlay ---
+const unsupportedOverlay = document.createElement('div');
+unsupportedOverlay.id = 'unsupported-overlay';
+unsupportedOverlay.innerHTML = '<div class="unsupported-banner"><p class="unsupported-title"></p><p class="unsupported-missing"></p></div>';
+document.body.appendChild(unsupportedOverlay);
+
+function showUnsupportedOverlay(engineId: string, scenarioId: string): void {
+    const entry = SCENARIOS.find((s) => s.id === scenarioId)!;
+    const missing = missingCapabilities(engineId, scenarioId);
+    unsupportedOverlay.querySelector<HTMLElement>('.unsupported-title')!.textContent =
+        `'${entry.label}' is not supported by ${engineLabelOf(engineId)}`;
+    unsupportedOverlay.querySelector<HTMLElement>('.unsupported-missing')!.textContent =
+        `Missing: ${missing.join(', ')}`;
+    unsupportedOverlay.classList.add('visible');
+}
+
+function hideUnsupportedOverlay(): void {
+    unsupportedOverlay.classList.remove('visible');
+}
+
+function refreshScenarioMenu(engineId: string): void {
+    for (const btn of scenarioPanel.querySelectorAll<HTMLButtonElement>('.scenario-item')) {
+        const sid = btn.dataset.scenario!;
+        const supported = scenarioSupported(engineId, sid);
+        btn.classList.toggle('unsupported', !supported);
+        btn.title = supported ? '' : `Missing: ${missingCapabilities(engineId, sid).join(', ')}`;
+    }
+}
 
 // --- scenario menu: collapsible category sections ---
 const scenarioPanel = document.getElementById('scenario-panel')!;
@@ -345,6 +420,17 @@ async function startEngine(name: string): Promise<void> {
     currentRenderer.resetCamera();
     stats.reset();
 
+    refreshScenarioMenu(name);
+
+    activeScenario = null;
+    activeScenarioState = null;
+
+    if (!scenarioSupported(name, activeScenarioName)) {
+        showUnsupportedOverlay(name, activeScenarioName);
+        return;
+    }
+    hideUnsupportedOverlay();
+
     activeScenario = getScenario(activeScenarioName);
 
     if (!activeScenarioControlsMounted) {
@@ -373,6 +459,15 @@ function startScenario(name: string): void {
     currentRenderer.clear();
     currentRenderer.resetCamera();
     stats.reset();
+
+    activeScenario = null;
+    activeScenarioState = null;
+
+    if (!scenarioSupported(activeEngineName, name)) {
+        showUnsupportedOverlay(activeEngineName, name);
+        return;
+    }
+    hideUnsupportedOverlay();
 
     activeScenario = getScenario(name);
 
@@ -498,6 +593,7 @@ async function init(): Promise<void> {
     setActiveEngineUI(engine);
 
     await Promise.all([box3d.init(), crashcat.init(), rapier.init(), jolt.init(), cannon.init(), bounce.init(), meep.init(), ammo.init()]);
+    refreshScenarioMenu(engine);
     await startEngine(engine);
 
     if (restoredControls) {
