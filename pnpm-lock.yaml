@@ -15,8 +15,8 @@ dependencies:
     specifier: ^2.165.0
     version: 2.165.0(three@0.185.1)
   box3d.js:
-    specifier: ^0.0.2
-    version: 0.0.2
+    specifier: ^0.1.1
+    version: 0.1.1
   cannon-es:
     specifier: 0.20.0
     version: 0.20.0
@@ -906,8 +906,8 @@ packages:
     hasBin: true
     dev: true
 
-  /box3d.js@0.0.2:
-    resolution: {integrity: sha512-ziC6IqMbMAYns1aJ7E1czhBEE2Kj+/QK9L16vMXOz7UaXKUj9gX7Za5ut+Dg3euHK6I/1brFSHOpmOwCI6FhYQ==}
+  /box3d.js@0.1.1:
+    resolution: {integrity: sha512-N3jkFuCpj5WxW3gmJDj/ai9Ticq6bIMMRk/tIJBkeOw4VZviHv6pAQEDFQczRwQQEtIo32Iy6OyhyxPxhzdF6w==}
     dev: false
 
   /buffer-from@1.1.2:

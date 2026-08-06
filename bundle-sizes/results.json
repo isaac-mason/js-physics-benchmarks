@@ -1,6 +1,6 @@
 {
   "meta": {
-    "measuredAt": "2026-07-06T11:23:13.628Z",
+    "measuredAt": "2026-08-06T07:59:32.796Z",
     "versions": {
       "crashcat": "0.0.5",
       "rapier": "0.19.3",
@@ -8,7 +8,7 @@
       "cannon": "0.20.0",
       "bounce": "1.8.1",
       "meep": "2.165.0",
-      "box3d": "0.0.2",
+      "box3d": "0.1.1",
       "ammo": "1ed8b58"
     }
   },
@@ -24,17 +24,17 @@
     "box3d": {
       "name": "box3d",
       "js": {
-        "raw": 61679,
-        "minified": 34090,
-        "minifiedGzip": 11386
+        "raw": 67153,
+        "minified": 37504,
+        "minifiedGzip": 12343
       },
       "wasm": {
-        "total": 824349,
-        "totalGzip": 319824,
+        "total": 837687,
+        "totalGzip": 322177,
         "files": {
           "box3d.wasm": {
-            "raw": 824349,
-            "gzip": 319824
+            "raw": 837687,
+            "gzip": 322177
           }
         }
       }

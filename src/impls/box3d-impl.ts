@@ -7,13 +7,7 @@ import { quatFromZToAxis, rotateByConjugate, worldToLocal } from './impl-helpers
 
 export const capabilities: ReadonlySet<Capability> = new Set([Capability.Raycast, Capability.ContactListener, Capability.HingeLimits, Capability.ConvexHull]);
 
-type B3Quat = { v: { x: number; y: number; z: number }; s: number };
-
-const B3Q_IDENTITY: B3Quat = { v: { x: 0, y: 0, z: 0 }, s: 1 };
-
-function toB3Quat(q: Quat): B3Quat {
-    return { v: { x: q[0], y: q[1], z: q[2] }, s: q[3] };
-}
+const Q_IDENTITY: Quat = [0, 0, 0, 1];
 
 type ImplState = {
     b3: Box3DModule;
@@ -71,7 +65,7 @@ export function disposeWorld(state: ImplState): void {
 }
 
 export function setGravity(state: ImplState, x: number, y: number, z: number): void {
-    b3.b3World_SetGravity(state.world, { x, y, z });
+    b3.b3World_SetGravity(state.world, [x, y, z]);
 }
 
 export function stepSimulation(state: ImplState, dt: number): void {
@@ -115,11 +109,11 @@ export function createRigidBody(state: ImplState, options: RigidBodyOptions, imp
             break;
     }
 
-    def.position = { x: options.position[0], y: options.position[1], z: options.position[2] };
+    def.position = [options.position[0], options.position[1], options.position[2]];
 
     if (options.quaternion) {
         const [qx, qy, qz, qw] = options.quaternion;
-        def.rotation = { v: { x: qx, y: qy, z: qz }, s: qw };
+        def.rotation = [qx, qy, qz, qw];
     }
 
     const body = b3.b3CreateBody(state.world, def);
@@ -141,18 +135,23 @@ export function createRigidBody(state: ImplState, options: RigidBodyOptions, imp
             break;
         }
         case ShapeType.SPHERE: {
-            b3.b3CreateSphereShape(body, shapeDef, { center: { x: 0, y: 0, z: 0 }, radius: implShape.radius });
+            b3.b3CreateSphereShape(body, shapeDef, { center: [0, 0, 0], radius: implShape.radius });
             break;
         }
         case ShapeType.CONVEX_HULL: {
             const pts = implShape.points;
             const hull = b3.b3CreateHull(pts);
-            if (hull) b3.b3CreateHullShape(body, shapeDef, hull);
+            if (hull) {
+                b3.b3CreateHullShape(body, shapeDef, hull);
+                // hull data is copied into the shape on creation — free the handle now
+                b3.b3DestroyHull(hull);
+            }
             break;
         }
         case ShapeType.TRIANGLE_MESH: {
             const mesh = b3.b3CreateMesh(implShape.positions, implShape.indices);
-            if (mesh) b3.b3CreateMeshShape(body, shapeDef, mesh, { x: 1, y: 1, z: 1 });
+            // mesh data is NOT copied — the world holds a raw pointer, so keep it alive
+            if (mesh) b3.b3CreateMeshShape(body, shapeDef, mesh, [1, 1, 1]);
             break;
         }
     }
@@ -166,59 +165,45 @@ export function removeRigidBody(state: ImplState, handle: b3BodyId): void {
 }
 
 export function getBodyPosition(out: Vec3, _state: ImplState, handle: b3BodyId): void {
-    const p = b3.b3Body_GetPosition(handle);
-    out[0] = p.x;
-    out[1] = p.y;
-    out[2] = p.z;
+    b3.b3Body_GetPosition(out, handle);
 }
 
 export function getBodyQuaternion(out: Quat, _state: ImplState, handle: b3BodyId): void {
-    const q = b3.b3Body_GetRotation(handle);
-    out[0] = q.v.x;
-    out[1] = q.v.y;
-    out[2] = q.v.z;
-    out[3] = q.s;
+    b3.b3Body_GetRotation(out, handle);
 }
 
 export function setBodyPosition(state: ImplState, handle: b3BodyId, position: Vec3): void {
-    const rot = b3.b3Body_GetRotation(handle);
-    b3.b3Body_SetTransform(handle, { x: position[0], y: position[1], z: position[2] }, rot);
+    const rot: Quat = [0, 0, 0, 1];
+    b3.b3Body_GetRotation(rot, handle);
+    b3.b3Body_SetTransform(handle, position, rot);
     b3.b3Body_SetAwake(handle, true);
     void state;
 }
 
 export function setBodyQuaternion(state: ImplState, handle: b3BodyId, quaternion: Quat): void {
-    const pos = b3.b3Body_GetPosition(handle);
-    const [qx, qy, qz, qw] = quaternion;
-    b3.b3Body_SetTransform(handle, pos, { v: { x: qx, y: qy, z: qz }, s: qw });
+    const pos: Vec3 = [0, 0, 0];
+    b3.b3Body_GetPosition(pos, handle);
+    b3.b3Body_SetTransform(handle, pos, quaternion);
     b3.b3Body_SetAwake(handle, true);
     void state;
 }
 
 export function setBodyLinearVelocity(state: ImplState, handle: b3BodyId, velocity: Vec3): void {
-    b3.b3Body_SetLinearVelocity(handle, { x: velocity[0], y: velocity[1], z: velocity[2] });
+    b3.b3Body_SetLinearVelocity(handle, velocity);
     b3.b3Body_SetAwake(handle, true);
     void state;
 }
 
 export function applyImpulse(_state: ImplState, handle: b3BodyId, impulse: Vec3): void {
-    b3.b3Body_ApplyLinearImpulseToCenter(handle, { x: impulse[0], y: impulse[1], z: impulse[2] }, true);
+    b3.b3Body_ApplyLinearImpulseToCenter(handle, impulse, true);
 }
 
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: b3BodyId): void {
-    const v = b3.b3Body_GetLinearVelocity(handle);
-    out[0] = v.x;
-    out[1] = v.y;
-    out[2] = v.z;
+    b3.b3Body_GetLinearVelocity(out, handle);
 }
 
 export function setBodyTranslationRotation(state: ImplState, handle: b3BodyId, position: Vec3, quaternion: Quat): void {
-    const [qx, qy, qz, qw] = quaternion;
-    b3.b3Body_SetTransform(
-        handle,
-        { x: position[0], y: position[1], z: position[2] },
-        { v: { x: qx, y: qy, z: qz }, s: qw },
-    );
+    b3.b3Body_SetTransform(handle, position, quaternion);
     b3.b3Body_SetAwake(handle, true);
     void state;
 }
@@ -240,12 +225,11 @@ function getFilter(b3: Box3DModule) {
 
 function box3dTransforms(state: ImplState, bodyA: b3BodyId, bodyB: b3BodyId) {
     const b3 = state.b3;
-    const pA = b3.b3Body_GetPosition(bodyA), rA = b3.b3Body_GetRotation(bodyA);
-    const pB = b3.b3Body_GetPosition(bodyB), rB = b3.b3Body_GetRotation(bodyB);
-    return {
-        posA: [pA.x, pA.y, pA.z] as Vec3, quatA: [rA.v.x, rA.v.y, rA.v.z, rA.s] as Quat,
-        posB: [pB.x, pB.y, pB.z] as Vec3, quatB: [rB.v.x, rB.v.y, rB.v.z, rB.s] as Quat,
-    };
+    const posA: Vec3 = [0, 0, 0], quatA: Quat = [0, 0, 0, 1];
+    const posB: Vec3 = [0, 0, 0], quatB: Quat = [0, 0, 0, 1];
+    b3.b3Body_GetPosition(posA, bodyA); b3.b3Body_GetRotation(quatA, bodyA);
+    b3.b3Body_GetPosition(posB, bodyB); b3.b3Body_GetRotation(quatB, bodyB);
+    return { posA, quatA, posB, quatB };
 }
 
 export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: b3BodyId, bodyB: b3BodyId): any {
@@ -255,8 +239,8 @@ export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: b3BodyId
     const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, posB, quatB);
     const def = b3.b3DefaultSphericalJointDef();
     def.base.bodyIdA = bodyA; def.base.bodyIdB = bodyB; def.base.collideConnected = false;
-    def.base.localFrameA = { p: { x: lA[0], y: lA[1], z: lA[2] }, q: B3Q_IDENTITY };
-    def.base.localFrameB = { p: { x: lB[0], y: lB[1], z: lB[2] }, q: B3Q_IDENTITY };
+    def.base.localFrameA = { position: lA, quaternion: Q_IDENTITY };
+    def.base.localFrameB = { position: lB, quaternion: Q_IDENTITY };
     return b3.b3CreateSphericalJoint(state.world, def);
 }
 
@@ -271,8 +255,8 @@ export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bod
     const fqB: Quat = [0, 0, 0, 1]; quatFromZToAxis(fqB, axB[0], axB[1], axB[2]);
     const def = b3.b3DefaultRevoluteJointDef();
     def.base.bodyIdA = bodyA; def.base.bodyIdB = bodyB; def.base.collideConnected = false;
-    def.base.localFrameA = { p: { x: lA[0], y: lA[1], z: lA[2] }, q: toB3Quat(fqA) };
-    def.base.localFrameB = { p: { x: lB[0], y: lB[1], z: lB[2] }, q: toB3Quat(fqB) };
+    def.base.localFrameA = { position: lA, quaternion: fqA };
+    def.base.localFrameB = { position: lB, quaternion: fqB };
     return b3.b3CreateRevoluteJoint(state.world, def);
 }
 
@@ -285,8 +269,8 @@ export function createFixedJoint(state: ImplState, bodyA: b3BodyId, bodyB: b3Bod
     const relQ: Quat = [0, 0, 0, 1]; quat.multiply(relQ, conjB, quatA);
     const def = b3.b3DefaultWeldJointDef();
     def.base.bodyIdA = bodyA; def.base.bodyIdB = bodyB; def.base.collideConnected = false;
-    def.base.localFrameA = { p: { x: 0, y: 0, z: 0 }, q: B3Q_IDENTITY };
-    def.base.localFrameB = { p: { x: lB[0], y: lB[1], z: lB[2] }, q: toB3Quat(relQ) };
+    def.base.localFrameA = { position: [0, 0, 0], quaternion: Q_IDENTITY };
+    def.base.localFrameB = { position: lB, quaternion: relQ };
     def.linearHertz = 0; def.angularHertz = 0; // hertz=0 → rigid
     return b3.b3CreateWeldJoint(state.world, def);
 }
@@ -300,8 +284,8 @@ export function createDistanceJoint(state: ImplState, anchorA: Vec3, anchorB: Ve
     const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
     const def = b3.b3DefaultDistanceJointDef();
     def.base.bodyIdA = bodyA; def.base.bodyIdB = bodyB; def.base.collideConnected = false;
-    def.base.localFrameA = { p: { x: lA[0], y: lA[1], z: lA[2] }, q: B3Q_IDENTITY };
-    def.base.localFrameB = { p: { x: lB[0], y: lB[1], z: lB[2] }, q: B3Q_IDENTITY };
+    def.base.localFrameA = { position: lA, quaternion: Q_IDENTITY };
+    def.base.localFrameB = { position: lB, quaternion: Q_IDENTITY };
     def.minLength = minDistance ?? 0; def.maxLength = maxDistance ?? d; def.enableLimit = true;
     return b3.b3CreateDistanceJoint(state.world, def);
 }
@@ -328,17 +312,12 @@ export function setHingeLimits(state: ImplState, handle: any, lower: number, upp
 }
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {
-    const scaledDir = {
-        x: direction[0] * maxDistance,
-        y: direction[1] * maxDistance,
-        z: direction[2] * maxDistance,
-    };
-    const result = b3.b3World_CastRayClosest(
-        state.world,
-        { x: origin[0], y: origin[1], z: origin[2] },
-        scaledDir,
-        getFilter(b3),
-    );
+    const scaledDir: Vec3 = [
+        direction[0] * maxDistance,
+        direction[1] * maxDistance,
+        direction[2] * maxDistance,
+    ];
+    const result = b3.b3World_CastRayClosest(state.world, origin, scaledDir, getFilter(b3));
     out.hit = result.hit;
     out.fraction = result.fraction;
 }
