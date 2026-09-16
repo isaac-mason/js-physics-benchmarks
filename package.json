@@ -18,7 +18,7 @@
     "box3d.js": "^0.1.1",
     "cannon-es": "0.20.0",
     "crashcat": "0.0.5",
-    "jolt-physics": "1.0.1",
+    "jolt-physics": "1.1.0",
     "lil-gui": "^0.21.0",
     "mathcat": "^0.0.14",
     "three": "^0.186.0"

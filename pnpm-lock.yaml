@@ -24,8 +24,8 @@ dependencies:
     specifier: 0.0.5
     version: 0.0.5(three@0.186.0)
   jolt-physics:
-    specifier: 1.0.1
-    version: 1.0.1
+    specifier: 1.1.0
+    version: 1.1.0
   lil-gui:
     specifier: ^0.21.0
     version: 0.21.0
@@ -1037,8 +1037,8 @@ packages:
       '@types/estree': 1.0.8
     dev: true
 
-  /jolt-physics@1.0.1:
-    resolution: {integrity: sha512-guJAWeamqWVM2n6yy87vG4RXtvA3R8+578/tege3THoC+ply2x9rRxIdfLJO69YarHBVXqGuMjq53v48u2V1cQ==}
+  /jolt-physics@1.1.0:
+    resolution: {integrity: sha512-Erl+X0yK2f9/8Wrl55Nb2y9FYS5xDx375EabnHq+TbSDYEuPZBLvpaLV4nbc1M5gyA5Llbug81wSj1zSMRUr7Q==}
     dev: false
 
   /lil-gui@0.21.0:

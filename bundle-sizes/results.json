@@ -1,10 +1,10 @@
 {
   "meta": {
-    "measuredAt": "2026-09-16T08:49:39.388Z",
+    "measuredAt": "2026-09-16T08:51:48.793Z",
     "versions": {
       "crashcat": "0.0.5",
       "rapier": "0.20.0",
-      "jolt": "1.0.1",
+      "jolt": "1.1.0",
       "cannon": "0.20.0",
       "bounce": "1.10.0",
       "meep": "2.165.0",
@@ -60,17 +60,17 @@
     "jolt": {
       "name": "jolt",
       "js": {
-        "raw": 965608,
-        "minified": 946947,
-        "minifiedGzip": 133436
+        "raw": 969176,
+        "minified": 950451,
+        "minifiedGzip": 133764
       },
       "wasm": {
-        "total": 2377172,
-        "totalGzip": 696806,
+        "total": 2435140,
+        "totalGzip": 716740,
         "files": {
           "jolt-physics.st-simd.wasm.wasm": {
-            "raw": 2377172,
-            "gzip": 696806
+            "raw": 2435140,
+            "gzip": 716740
           }
         }
       }

@@ -11,7 +11,7 @@
 # Requires: emsdk (set EMSDK_DIR or have emcc on PATH), cmake, python3.
 set -e
 
-JOLT_VERSION=1.0.1
+JOLT_VERSION=1.1.0
 REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT_DIR="$REPO_ROOT/src/lib/jolt"
 WORK_DIR="${WORK_DIR:-$(mktemp -d)}"
