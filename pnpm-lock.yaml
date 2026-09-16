@@ -13,7 +13,7 @@ dependencies:
     version: 1.8.1
   '@woosh/meep-engine':
     specifier: ^2.165.0
-    version: 2.165.0(three@0.185.1)
+    version: 2.165.0(three@0.186.0)
   box3d.js:
     specifier: ^0.1.1
     version: 0.1.1
@@ -22,7 +22,7 @@ dependencies:
     version: 0.20.0
   crashcat:
     specifier: 0.0.5
-    version: 0.0.5(three@0.185.1)
+    version: 0.0.5(three@0.186.0)
   jolt-physics:
     specifier: 1.0.1
     version: 1.0.1
@@ -33,8 +33,8 @@ dependencies:
     specifier: ^0.0.13
     version: 0.0.13
   three:
-    specifier: ^0.185.1
-    version: 0.185.1
+    specifier: ^0.186.0
+    version: 0.186.0
 
 devDependencies:
   '@biomejs/biome':
@@ -50,8 +50,8 @@ devDependencies:
     specifier: ^12.3.0
     version: 12.3.0(rollup@4.59.0)(tslib@2.8.1)(typescript@5.9.3)
   '@types/three':
-    specifier: ^0.185.0
-    version: 0.185.0
+    specifier: ^0.186.0
+    version: 0.186.0
   rollup:
     specifier: ^4.59.0
     version: 4.59.0
@@ -869,14 +869,14 @@ packages:
     resolution: {integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==}
     dev: true
 
-  /@types/three@0.185.0:
-    resolution: {integrity: sha512-O2Uy8Cj4Nonr8dWUUbifMdPe8B0Mq7EdOHb89S4+kjUw/KhbjTZrUuYlrQ1bpUKG+EP9QJnN7qNxbHGlGoLHMA==}
+  /@types/three@0.186.0:
+    resolution: {integrity: sha512-mxYSBpDC+D0pLfSP6sW4WZTcT+nrtmZcimMqnVmy36Hte3XpeYSrvgg4TRdaM1GemGog1AWzI5qL2VoIfMXbJQ==}
     dependencies:
       '@dimforge/rapier3d-compat': 0.12.0
       '@tweenjs/tween.js': 23.1.3
       '@types/stats.js': 0.17.4
       '@types/webxr': 0.5.24
-      fflate: 0.8.2
+      fflate: 0.8.3
       meshoptimizer: 1.1.1
     dev: true
 
@@ -884,7 +884,7 @@ packages:
     resolution: {integrity: sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==}
     dev: true
 
-  /@woosh/meep-engine@2.165.0(three@0.185.1):
+  /@woosh/meep-engine@2.165.0(three@0.186.0):
     resolution: {integrity: sha512-fG4JUnVZWkZ5EK87Tj8MYr7lnp6AgdCBTPzWOOpg8vMMJut4BaDBL9vRnZLNK2bTQuEOrZwFbJab4JOaXo4zOQ==}
     engines: {node: '>=24'}
     peerDependencies:
@@ -897,7 +897,7 @@ packages:
       opentype.js: 1.3.3
       pako: 2.0.3
       robust-predicates: 3.0.2
-      three: 0.185.1
+      three: 0.186.0
     dev: false
 
   /acorn@8.16.0:
@@ -926,7 +926,7 @@ packages:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
 
-  /crashcat@0.0.5(three@0.185.1):
+  /crashcat@0.0.5(three@0.186.0):
     resolution: {integrity: sha512-8BcoWz5sfUxUTCzFlBImHNsWei4Wso18MOHkjeZjgEGCq+SPlbYr65USCCeVsEOTq1GM6Aai/HHvmgfpKw61dQ==}
     peerDependencies:
       three: '>=0.182.0'
@@ -935,7 +935,7 @@ packages:
         optional: true
     dependencies:
       mathcat: 0.0.13
-      three: 0.185.1
+      three: 0.186.0
     dev: false
 
   /deepmerge@4.3.1:
@@ -993,8 +993,8 @@ packages:
       picomatch: 4.0.3
     dev: true
 
-  /fflate@0.8.2:
-    resolution: {integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==}
+  /fflate@0.8.3:
+    resolution: {integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==}
     dev: true
 
   /fsevents@2.3.3:
@@ -1190,8 +1190,8 @@ packages:
       source-map-support: 0.5.21
     dev: true
 
-  /three@0.185.1:
-    resolution: {integrity: sha512-5aojFCXKwnjBRZvUnt3WFfEcvUJgkN5LlijRFN95hMy8WVkG4I0QNcJE+OuWvuJ0bOdStrbfXn0pkd6/QyiAlg==}
+  /three@0.186.0:
+    resolution: {integrity: sha512-cr/fIM2ddMSVbYVgkfD4jLJv7Fh/8ZTjvo+7gQeSVGUZHxpx9FDwoL5iC7hUz/LiRA8wMbqfnb90xKfm1/HHkQ==}
     dev: false
 
   /tiny-inflate@1.0.3:
