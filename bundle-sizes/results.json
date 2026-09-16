@@ -1,6 +1,6 @@
 {
   "meta": {
-    "measuredAt": "2026-08-06T07:59:32.796Z",
+    "measuredAt": "2026-09-16T08:37:41.604Z",
     "versions": {
       "crashcat": "0.0.5",
       "rapier": "0.19.3",
@@ -9,7 +9,7 @@
       "bounce": "1.8.1",
       "meep": "2.165.0",
       "box3d": "0.1.1",
-      "ammo": "1ed8b58"
+      "ammo": "7dec46e"
     }
   },
   "results": {
@@ -42,17 +42,17 @@
     "rapier": {
       "name": "rapier",
       "js": {
-        "raw": 460536,
-        "minified": 133619,
-        "minifiedGzip": 22598
+        "raw": 460546,
+        "minified": 133629,
+        "minifiedGzip": 22602
       },
       "wasm": {
-        "total": 1570176,
-        "totalGzip": 586784,
+        "total": 1622757,
+        "totalGzip": 605510,
         "files": {
           "rapier_wasm3d_bg.wasm": {
-            "raw": 1570176,
-            "gzip": 586784
+            "raw": 1622757,
+            "gzip": 605510
           }
         }
       }
@@ -62,15 +62,15 @@
       "js": {
         "raw": 965608,
         "minified": 946947,
-        "minifiedGzip": 133437
+        "minifiedGzip": 133436
       },
       "wasm": {
-        "total": 1986692,
-        "totalGzip": 728937,
+        "total": 2377172,
+        "totalGzip": 696806,
         "files": {
-          "jolt-physics.wasm.wasm": {
-            "raw": 1986692,
-            "gzip": 728937
+          "jolt-physics.st-simd.wasm.wasm": {
+            "raw": 2377172,
+            "gzip": 696806
           }
         }
       }
@@ -102,17 +102,17 @@
     "ammo": {
       "name": "ammo",
       "js": {
-        "raw": 685014,
-        "minified": 442497,
-        "minifiedGzip": 50459
+        "raw": 759016,
+        "minified": 346513,
+        "minifiedGzip": 50207
       },
       "wasm": {
-        "total": 747690,
-        "totalGzip": 291163,
+        "total": 921043,
+        "totalGzip": 273491,
         "files": {
           "ammo.wasm.wasm": {
-            "raw": 747690,
-            "gzip": 291163
+            "raw": 921043,
+            "gzip": 273491
           }
         }
       }

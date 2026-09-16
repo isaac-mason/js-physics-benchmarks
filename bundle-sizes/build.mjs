@@ -250,7 +250,8 @@ async function main() {
     bounce: versionFor('@perplexdotgg/bounce'),
     meep: versionFor('@woosh/meep-engine'),
     box3d: versionFor('box3d.js'),
-    ammo: '1ed8b58',
+    // local SIMD build; commit pinned in scripts/build-ammo-simd.sh
+    ammo: '7dec46e',
   }
 
   for (const engine of ENGINES) {
