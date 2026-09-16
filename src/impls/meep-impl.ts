@@ -3,11 +3,17 @@ import type { AbstractShape3D } from '@woosh/meep-engine/src/core/geom/3d/shape/
 import { BoxShape3D } from '@woosh/meep-engine/src/core/geom/3d/shape/BoxShape3D.js';
 import { SphereShape3D } from '@woosh/meep-engine/src/core/geom/3d/shape/SphereShape3D.js';
 import { shape_mesh_from_geometry } from '@woosh/meep-engine/src/core/geom/3d/shape/shape_mesh_from_geometry.js';
+import { v3_set } from '@woosh/meep-engine/src/core/geom/vec3/v3_set.js';
+import { v4_set } from '@woosh/meep-engine/src/core/geom/vec4/v4_set.js';
 import EntityBuilder from '@woosh/meep-engine/src/engine/ecs/Entity.js';
 import { EntityComponentDataset } from '@woosh/meep-engine/src/engine/ecs/EntityComponentDataset.js';
 import { EntityManager } from '@woosh/meep-engine/src/engine/ecs/EntityManager.js';
 import type { System } from '@woosh/meep-engine/src/engine/ecs/System.js';
-import { Transform } from '@woosh/meep-engine/src/engine/ecs/transform/Transform.js';
+import {
+    TRANSFORM64_ROTATION_OFFSET,
+    TRANSFORM64_TRANSLATION_OFFSET,
+    Transform64,
+} from '@woosh/meep-engine/src/engine/ecs/transform/Transform64.js';
 import { BodyKind } from '@woosh/meep-engine/src/engine/physics/ecs/BodyKind.js';
 import { Collider } from '@woosh/meep-engine/src/engine/physics/ecs/Collider.js';
 import { ColliderObserverSystem } from '@woosh/meep-engine/src/engine/physics/ecs/ColliderObserverSystem.js';
@@ -16,10 +22,45 @@ import { PhysicsSystem } from '@woosh/meep-engine/src/engine/physics/ecs/Physics
 import { RigidBody } from '@woosh/meep-engine/src/engine/physics/ecs/RigidBody.js';
 import { ContactEventKind } from '@woosh/meep-engine/src/engine/physics/events/ContactEventBuffer.js';
 import { PhysicsSurfacePoint } from '@woosh/meep-engine/src/engine/physics/queries/PhysicsSurfacePoint.js';
-
 import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { Capability, MotionType, ShapeType } from '../api';
 import { quatFromXToAxis, rotateByConjugate, worldToLocal } from './impl-helpers';
+
+// meep 3.x moved the physics hot path off Vector3 objects onto raw Float64Arrays
+// (gravity, inverseInertiaLocal, joint anchors/bases, linearVelocity). Calling
+// `.set(x, y, z)` on those hits `TypedArray.prototype.set`, which silently writes
+// nothing or throws — meep's own source warns about this. Write them through
+// meep's indexed helpers instead.
+// Reading back: indexed access is `number | undefined` under
+// `noUncheckedIndexedAccess`, but these arrays are always length 3.
+type Vec3Reader = { readonly 0: number; readonly 1: number; readonly 2: number };
+
+// meep 3.x replaced the Transform component with Transform64: matrix, translation,
+// rotation and scale packed into one Float64Array at fixed offsets, with no
+// Vector3 fields. Indexed reads are `number | undefined` under
+// `noUncheckedIndexedAccess`, but every offset we use is in range by construction.
+function at(t: Transform64, index: number): number {
+    return (t as unknown as Float64Array)[index] as number;
+}
+
+// Reused so setPose (called per body per frame) does not allocate a view each call.
+const _poseTranslation = new Float64Array(3);
+const _poseRotation = new Float64Array(4);
+
+function readTranslation(t: Transform64, out: Float64Array): Float64Array {
+    out[0] = at(t, TRANSFORM64_TRANSLATION_OFFSET);
+    out[1] = at(t, TRANSFORM64_TRANSLATION_OFFSET + 1);
+    out[2] = at(t, TRANSFORM64_TRANSLATION_OFFSET + 2);
+    return out;
+}
+
+function readRotation(t: Transform64, out: Float64Array): Float64Array {
+    out[0] = at(t, TRANSFORM64_ROTATION_OFFSET);
+    out[1] = at(t, TRANSFORM64_ROTATION_OFFSET + 1);
+    out[2] = at(t, TRANSFORM64_ROTATION_OFFSET + 2);
+    out[3] = at(t, TRANSFORM64_ROTATION_OFFSET + 3);
+    return out;
+}
 
 export const capabilities: ReadonlySet<Capability> = new Set([
     Capability.Raycast,
@@ -36,7 +77,7 @@ type MeepShapeHandle = {
 type BodyHandle = {
     entity: number;
     rb: RigidBody;
-    transform: Transform;
+    transform: Transform64;
 };
 
 type ImplState = {
@@ -109,13 +150,13 @@ function setInverseInertia(rb: RigidBody, desc: PhysicsShape, mass: number): voi
             const ixx = (mass / 3) * (hy * hy + hz * hz);
             const iyy = (mass / 3) * (hx * hx + hz * hz);
             const izz = (mass / 3) * (hx * hx + hy * hy);
-            inv.set(ixx > 0 ? 1 / ixx : 0, iyy > 0 ? 1 / iyy : 0, izz > 0 ? 1 / izz : 0);
+            v3_set(inv, 0, ixx > 0 ? 1 / ixx : 0, iyy > 0 ? 1 / iyy : 0, izz > 0 ? 1 / izz : 0);
             return;
         }
         case ShapeType.SPHERE: {
             const i = (2 / 5) * mass * desc.radius * desc.radius;
             const ii = i > 0 ? 1 / i : 0;
-            inv.set(ii, ii, ii);
+            v3_set(inv, 0, ii, ii, ii);
             return;
         }
         case ShapeType.CONVEX_HULL: {
@@ -123,7 +164,7 @@ function setInverseInertia(rb: RigidBody, desc: PhysicsShape, mass: number): voi
             const ixx = (mass / 3) * (hy * hy + hz * hz);
             const iyy = (mass / 3) * (hx * hx + hz * hz);
             const izz = (mass / 3) * (hx * hx + hy * hy);
-            inv.set(ixx > 0 ? 1 / ixx : 0, iyy > 0 ? 1 / iyy : 0, izz > 0 ? 1 / izz : 0);
+            v3_set(inv, 0, ixx > 0 ? 1 / ixx : 0, iyy > 0 ? 1 / iyy : 0, izz > 0 ? 1 / izz : 0);
             return;
         }
         case ShapeType.TRIANGLE_MESH:
@@ -176,7 +217,7 @@ export function createWorld(): ImplState {
     // base's `link()` is typed as a 5-arity overload set that the concrete
     // 3-arg subclass methods don't structurally satisfy — a variance bug in
     // meep's type exports, identical in spirit to the AbstractShape3D issue.
-    type AnySystem = System<unknown, unknown, unknown, unknown, unknown>;
+    type AnySystem = System<unknown>;
     em.addSystem(physics as unknown as AnySystem);
     em.addSystem(new ColliderObserverSystem(physics) as unknown as AnySystem);
     em.attachDataset(dataset);
@@ -206,7 +247,7 @@ export function disposeWorld(state: ImplState): void {
 }
 
 export function setGravity(state: ImplState, x: number, y: number, z: number): void {
-    state.physics.gravity.set(x, y, z);
+    v3_set(state.physics.gravity, 0, x, y, z);
 }
 
 export function stepSimulation(state: ImplState, dt: number): void {
@@ -247,11 +288,13 @@ export function destroyShape(_state: ImplState, _implHandle: MeepShapeHandle): v
 export function createRigidBody(state: ImplState, options: RigidBodyOptions, implShape: MeepShapeHandle): BodyHandle {
     // We carry references to the component instances we hand to Entity.add so
     // get/set fast paths skip dataset lookups during the simulation loop.
-    const transform = new Transform();
-    transform.position.set(options.position[0], options.position[1], options.position[2]);
+    const transform = new Transform64();
+    transform.setTranslation(options.position[0], options.position[1], options.position[2]);
     if (options.quaternion) {
-        transform.rotation.set(options.quaternion[0], options.quaternion[1], options.quaternion[2], options.quaternion[3]);
+        transform.setRotation(options.quaternion[0], options.quaternion[1], options.quaternion[2], options.quaternion[3]);
     }
+    // Transform64 does not refresh the matrix on write; compose it once here.
+    transform.updateMatrix();
 
     const rb = new RigidBody();
     rb.kind = motionToBodyKind(options.motionType);
@@ -278,52 +321,44 @@ export function removeRigidBody(state: ImplState, handle: BodyHandle): void {
 }
 
 export function getBodyPosition(out: Vec3, _state: ImplState, handle: BodyHandle): void {
-    out[0] = handle.transform.position.x;
-    out[1] = handle.transform.position.y;
-    out[2] = handle.transform.position.z;
+    out[0] = at(handle.transform, TRANSFORM64_TRANSLATION_OFFSET);
+    out[1] = at(handle.transform, TRANSFORM64_TRANSLATION_OFFSET + 1);
+    out[2] = at(handle.transform, TRANSFORM64_TRANSLATION_OFFSET + 2);
 }
 
 export function getBodyQuaternion(out: Quat, _state: ImplState, handle: BodyHandle): void {
-    out[0] = handle.transform.rotation.x;
-    out[1] = handle.transform.rotation.y;
-    out[2] = handle.transform.rotation.z;
-    out[3] = handle.transform.rotation.w;
+    out[0] = at(handle.transform, TRANSFORM64_ROTATION_OFFSET);
+    out[1] = at(handle.transform, TRANSFORM64_ROTATION_OFFSET + 1);
+    out[2] = at(handle.transform, TRANSFORM64_ROTATION_OFFSET + 2);
+    out[3] = at(handle.transform, TRANSFORM64_ROTATION_OFFSET + 3);
 }
 
 export function setBodyPosition(state: ImplState, handle: BodyHandle, position: Vec3): void {
     // setPose handles wake + interpolation-snap; safer than raw Transform writes.
-    state.physics.setPose(handle.rb, { x: position[0], y: position[1], z: position[2] }, handle.transform.rotation);
+    state.physics.setPose(handle.rb, position, readRotation(handle.transform, _poseRotation));
 }
 
 export function setBodyQuaternion(state: ImplState, handle: BodyHandle, quaternion: Quat): void {
-    state.physics.setPose(handle.rb, handle.transform.position, {
-        x: quaternion[0],
-        y: quaternion[1],
-        z: quaternion[2],
-        w: quaternion[3],
-    });
+    state.physics.setPose(handle.rb, readTranslation(handle.transform, _poseTranslation), quaternion);
 }
 
 export function setBodyLinearVelocity(state: ImplState, handle: BodyHandle, velocity: Vec3): void {
-    state.physics.setLinearVelocity(handle.rb, { x: velocity[0], y: velocity[1], z: velocity[2] });
+    state.physics.setLinearVelocity(handle.rb, velocity);
 }
 
 export function applyImpulse(state: ImplState, handle: BodyHandle, impulse: Vec3): void {
-    state.physics.applyImpulse(handle.rb, { x: impulse[0], y: impulse[1], z: impulse[2] });
+    state.physics.applyImpulse(handle.rb, impulse);
 }
 
 export function getBodyLinearVelocity(out: Vec3, _state: ImplState, handle: BodyHandle): void {
-    out[0] = handle.rb.linearVelocity.x;
-    out[1] = handle.rb.linearVelocity.y;
-    out[2] = handle.rb.linearVelocity.z;
+    const lv = handle.rb.linearVelocity as unknown as Vec3Reader;
+    out[0] = lv[0];
+    out[1] = lv[1];
+    out[2] = lv[2];
 }
 
 export function setBodyTranslationRotation(state: ImplState, handle: BodyHandle, position: Vec3, quaternion: Quat): void {
-    state.physics.setPose(
-        handle.rb,
-        { x: position[0], y: position[1], z: position[2] },
-        { x: quaternion[0], y: quaternion[1], z: quaternion[2], w: quaternion[3] },
-    );
+    state.physics.setPose(handle.rb, position, quaternion);
 }
 
 export function onContactAdded(state: ImplState, onContact: (hA: BodyHandle, hB: BodyHandle) => void): void {
@@ -339,19 +374,29 @@ function meepJoint(bodyA: BodyHandle, bodyB: BodyHandle): [Joint, Vec3, Quat, Ve
     const joint = new Joint();
     joint.entityA = bodyA.entity;
     joint.entityB = bodyB.entity;
-    const posA: Vec3 = [bodyA.transform.position.x, bodyA.transform.position.y, bodyA.transform.position.z];
-    const quatA: Quat = [
-        bodyA.transform.rotation.x,
-        bodyA.transform.rotation.y,
-        bodyA.transform.rotation.z,
-        bodyA.transform.rotation.w,
+    const ta = bodyA.transform;
+    const tb = bodyB.transform;
+    const posA: Vec3 = [
+        at(ta, TRANSFORM64_TRANSLATION_OFFSET),
+        at(ta, TRANSFORM64_TRANSLATION_OFFSET + 1),
+        at(ta, TRANSFORM64_TRANSLATION_OFFSET + 2),
     ];
-    const posB: Vec3 = [bodyB.transform.position.x, bodyB.transform.position.y, bodyB.transform.position.z];
+    const quatA: Quat = [
+        at(ta, TRANSFORM64_ROTATION_OFFSET),
+        at(ta, TRANSFORM64_ROTATION_OFFSET + 1),
+        at(ta, TRANSFORM64_ROTATION_OFFSET + 2),
+        at(ta, TRANSFORM64_ROTATION_OFFSET + 3),
+    ];
+    const posB: Vec3 = [
+        at(tb, TRANSFORM64_TRANSLATION_OFFSET),
+        at(tb, TRANSFORM64_TRANSLATION_OFFSET + 1),
+        at(tb, TRANSFORM64_TRANSLATION_OFFSET + 2),
+    ];
     const quatB: Quat = [
-        bodyB.transform.rotation.x,
-        bodyB.transform.rotation.y,
-        bodyB.transform.rotation.z,
-        bodyB.transform.rotation.w,
+        at(tb, TRANSFORM64_ROTATION_OFFSET),
+        at(tb, TRANSFORM64_ROTATION_OFFSET + 1),
+        at(tb, TRANSFORM64_ROTATION_OFFSET + 2),
+        at(tb, TRANSFORM64_ROTATION_OFFSET + 3),
     ];
     return [joint, posA, quatA, posB, quatB];
 }
@@ -367,8 +412,8 @@ export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: BodyHand
     worldToLocal(lA, anchor, posA, quatA);
     const lB: Vec3 = [0, 0, 0];
     worldToLocal(lB, anchor, posB, quatB);
-    joint.localAnchorA.set(lA[0], lA[1], lA[2]);
-    joint.localAnchorB.set(lB[0], lB[1], lB[2]);
+    v3_set(joint.localAnchorA, 0, lA[0], lA[1], lA[2]);
+    v3_set(joint.localAnchorB, 0, lB[0], lB[1], lB[2]);
     joint.asBallSocket();
     return meepEnqueue(state, joint);
 }
@@ -379,8 +424,8 @@ export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bod
     worldToLocal(lA, anchor, posA, quatA);
     const lB: Vec3 = [0, 0, 0];
     worldToLocal(lB, anchor, posB, quatB);
-    joint.localAnchorA.set(lA[0], lA[1], lA[2]);
-    joint.localAnchorB.set(lB[0], lB[1], lB[2]);
+    v3_set(joint.localAnchorA, 0, lA[0], lA[1], lA[2]);
+    v3_set(joint.localAnchorB, 0, lB[0], lB[1], lB[2]);
     const hA: Vec3 = [0, 0, 0];
     rotateByConjugate(hA, axis, quatA);
     const hB: Vec3 = [0, 0, 0];
@@ -389,8 +434,8 @@ export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bod
     quatFromXToAxis(fqA, hA[0], hA[1], hA[2]);
     const fqB: Quat = [0, 0, 0, 1];
     quatFromXToAxis(fqB, hB[0], hB[1], hB[2]);
-    joint.localBasisA.set(fqA[0], fqA[1], fqA[2], fqA[3]);
-    joint.localBasisB.set(fqB[0], fqB[1], fqB[2], fqB[3]);
+    v4_set(joint.localBasisA, 0, fqA[0], fqA[1], fqA[2], fqA[3]);
+    v4_set(joint.localBasisB, 0, fqB[0], fqB[1], fqB[2], fqB[3]);
     joint.asHinge(0); // 0 = free angular axis X
     return meepEnqueue(state, joint);
 }
@@ -399,8 +444,8 @@ export function createFixedJoint(state: ImplState, bodyA: BodyHandle, bodyB: Bod
     const [joint, posA, , posB, quatB] = meepJoint(bodyA, bodyB);
     const lB: Vec3 = [0, 0, 0];
     worldToLocal(lB, posA, posB, quatB);
-    joint.localAnchorA.set(0, 0, 0);
-    joint.localAnchorB.set(lB[0], lB[1], lB[2]);
+    v3_set(joint.localAnchorA, 0, 0, 0, 0);
+    v3_set(joint.localAnchorB, 0, lB[0], lB[1], lB[2]);
     joint.asWeld();
     return meepEnqueue(state, joint);
 }
@@ -420,8 +465,8 @@ export function createDistanceJoint(
     worldToLocal(lA, anchorA, posA, quatA);
     const lB: Vec3 = [0, 0, 0];
     worldToLocal(lB, anchorB, posB, quatB);
-    joint.localAnchorA.set(lA[0], lA[1], lA[2]);
-    joint.localAnchorB.set(lB[0], lB[1], lB[2]);
+    v3_set(joint.localAnchorA, 0, lA[0], lA[1], lA[2]);
+    v3_set(joint.localAnchorB, 0, lB[0], lB[1], lB[2]);
     joint.asBallSocket();
     return meepEnqueue(state, joint);
 }

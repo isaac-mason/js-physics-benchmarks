@@ -14,7 +14,7 @@
   "dependencies": {
     "@dimforge/rapier3d-simd": "0.20.0",
     "@perplexdotgg/bounce": "^1.10.0",
-    "@woosh/meep-engine": "^2.165.0",
+    "@woosh/meep-engine": "^3.28.0",
     "box3d.js": "^0.1.1",
     "cannon-es": "0.20.0",
     "crashcat": "0.0.5",

@@ -1,13 +1,13 @@
 {
   "meta": {
-    "measuredAt": "2026-09-16T08:51:48.793Z",
+    "measuredAt": "2026-09-16T09:03:41.702Z",
     "versions": {
       "crashcat": "0.0.5",
       "rapier": "0.20.0",
       "jolt": "1.1.0",
       "cannon": "0.20.0",
       "bounce": "1.10.0",
-      "meep": "2.165.0",
+      "meep": "3.28.0",
       "box3d": "0.1.1",
       "ammo": "7dec46e"
     }
@@ -94,9 +94,9 @@
     "meep": {
       "name": "meep",
       "js": {
-        "raw": 1259359,
-        "minified": 307099,
-        "minifiedGzip": 103392
+        "raw": 1451450,
+        "minified": 349649,
+        "minifiedGzip": 116543
       }
     },
     "ammo": {
