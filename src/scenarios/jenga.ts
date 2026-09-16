@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Quat } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Jenga Stack — a tall crosshatched tower of thin planks. Faithful port of

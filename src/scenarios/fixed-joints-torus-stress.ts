@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Fixed Joints Torus Stress — port of PEEL's FixedJointsTorusStressTest scene.
@@ -40,12 +40,7 @@ type TorusData = {
     jointIds: number[];
 };
 
-function buildTorus(
-    physics: PhysicsState,
-    centerY: number,
-    useRotY90: boolean,
-    mass: number,
-): TorusData {
+function buildTorus(physics: PhysicsState, centerY: number, useRotY90: boolean, mass: number): TorusData {
     // Pre-compute all vertex rings
     const rings: [number, number, number][][] = [];
     for (let j = 0; j <= NB_SLICES; j++) {
@@ -70,9 +65,17 @@ function buildTorus(
         const pts = [...ringA, ...ringB];
 
         // Centroid of this slice
-        let cx = 0, cy = 0, cz = 0;
-        for (const [x, y, z] of pts) { cx += x; cy += y; cz += z; }
-        cx /= pts.length; cy /= pts.length; cz /= pts.length;
+        let cx = 0,
+            cy = 0,
+            cz = 0;
+        for (const [x, y, z] of pts) {
+            cx += x;
+            cy += y;
+            cz += z;
+        }
+        cx /= pts.length;
+        cy /= pts.length;
+        cz /= pts.length;
         centers.push([cx, centerY + cy, cz]);
 
         // Convex hull points centered at slice centroid
@@ -84,12 +87,14 @@ function buildTorus(
         });
         shapeIds.push(shapeId);
 
-        bodyIds.push(api.createRigidBody(physics, {
-            shape: shapeId,
-            motionType: mass === 0 ? MotionType.STATIC : MotionType.DYNAMIC,
-            position: [cx, centerY + cy, cz],
-            mass,
-        }));
+        bodyIds.push(
+            api.createRigidBody(physics, {
+                shape: shapeId,
+                motionType: mass === 0 ? MotionType.STATIC : MotionType.DYNAMIC,
+                position: [cx, centerY + cy, cz],
+                mass,
+            }),
+        );
     }
 
     // Fixed joints between adjacent slices
@@ -124,7 +129,7 @@ export const createFixedJointsTorusStressScenario = () =>
             const toruses: TorusData[] = [];
             for (let i = 0; i < NB_TORUS; i++) {
                 const centerY = BASE_Y + i * Y_STEP;
-                const useRotY90 = (i % 2) === 1;
+                const useRotY90 = i % 2 === 1;
                 // Last torus (i == NB_TORUS-1) is static
                 const mass = i === NB_TORUS - 1 ? 0 : 1;
                 toruses.push(buildTorus(physics, centerY, useRotY90, mass));

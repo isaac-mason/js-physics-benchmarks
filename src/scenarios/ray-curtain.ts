@@ -1,11 +1,11 @@
-import * as THREE from 'three';
-import { euler, quat } from 'mathcat';
 import type { Quat, Vec3 } from 'mathcat';
-import { createScenario } from './types';
-import { MotionType, ShapeType, createRaycastResult } from '../api';
-import * as api from '../api';
+import { euler, quat } from 'mathcat';
+import * as THREE from 'three';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { createRaycastResult, MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Ray Curtain — a sweeping "curtain" of parallel downward rays cast across a

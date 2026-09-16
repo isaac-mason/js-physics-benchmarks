@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Point Chain — a vertical chain of spheres suspended from a static anchor by
@@ -47,14 +47,16 @@ function buildChain(physics: PhysicsState, n: number): ChainData {
     const linkIds: number[] = [];
     for (let i = 0; i < n; i++) {
         const y = ANCHOR_Y - LINK_RADIUS - (i + 1) * LINK_SPACING;
-        linkIds.push(api.createRigidBody(physics, {
-            shape: linkShapeId,
-            motionType: MotionType.DYNAMIC,
-            position: [0, y, 0],
-            mass: 1,
-            restitution: 0.2,
-            friction: 0.1,
-        }));
+        linkIds.push(
+            api.createRigidBody(physics, {
+                shape: linkShapeId,
+                motionType: MotionType.DYNAMIC,
+                position: [0, y, 0],
+                mass: 1,
+                restitution: 0.2,
+                friction: 0.1,
+            }),
+        );
     }
 
     const jointIds: number[] = [];

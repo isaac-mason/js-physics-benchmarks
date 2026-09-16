@@ -1,7 +1,7 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
+import type { PhysicsState, Quat, Vec3 } from '../api';
 import * as api from '../api';
-import type { PhysicsState, Vec3, Quat } from '../api';
+import { MotionType, ShapeType } from '../api';
+import { createScenario } from './types';
 
 const DEFAULT_GRID_SIZE = 30;
 const PLATFORM_SPACING = 3;

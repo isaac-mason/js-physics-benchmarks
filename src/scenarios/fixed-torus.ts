@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Quat } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Fixed Torus — a ring of rectangular blocks joined by fixed joints, forming a
@@ -15,8 +15,8 @@ import type { Renderer } from '../renderer';
 const RING_RADIUS = 5;
 // BOX_HX is computed per-build from the chord length so boxes never overlap,
 // regardless of count. See buildTorus below.
-const BOX_HY = 0.18;   // half-height (ring thickness)
-const BOX_HZ = 0.45;   // half-depth
+const BOX_HY = 0.18; // half-height (ring thickness)
+const BOX_HZ = 0.45; // half-depth
 const DROP_HEIGHT = 8;
 const DEFAULT_COUNT = 16;
 const DEFAULT_RESTART = 10;
@@ -58,15 +58,17 @@ function buildTorus(physics: PhysicsState, n: number): TorusData {
         const theta = (i / n) * Math.PI * 2;
         const x = Math.cos(theta) * RING_RADIUS;
         const z = Math.sin(theta) * RING_RADIUS;
-        boxIds.push(api.createRigidBody(physics, {
-            shape: boxShapeId,
-            motionType: MotionType.DYNAMIC,
-            position: [x, DROP_HEIGHT, z],
-            quaternion: ringBoxQuat(theta),
-            mass: 1,
-            friction: 0.4,
-            restitution: 0.1,
-        }));
+        boxIds.push(
+            api.createRigidBody(physics, {
+                shape: boxShapeId,
+                motionType: MotionType.DYNAMIC,
+                position: [x, DROP_HEIGHT, z],
+                quaternion: ringBoxQuat(theta),
+                mass: 1,
+                friction: 0.4,
+                restitution: 0.1,
+            }),
+        );
     }
 
     // Fixed joints between adjacent boxes (and last→first to close the ring)

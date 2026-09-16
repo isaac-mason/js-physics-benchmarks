@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Vec3 } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Stacked Spheres — faithful port of PEEL's "StackedSpheres" (CATEGORY_BEHAVIOR).

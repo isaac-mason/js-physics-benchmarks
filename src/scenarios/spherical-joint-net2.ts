@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Spherical Joint Net 2 — port of PEEL's SphericalJointNet2 scene.
@@ -21,22 +21,27 @@ const NB_LAYERS = 2;
 const DROP_NB_X = 4;
 const DROP_NB_Y = 4;
 const DROP_RADIUS = 3.0;
-const DROP_HE = 3.0;       // box half-extent
+const DROP_HE = 3.0; // box half-extent
 const DROP_BOX_DEPTH = 20.0;
 const DROP_BOX_SIDE = 20.0;
 
 // Simple seeded PRNG (LCG) matching deterministic scene layout
 class Rng {
     private s: number;
-    constructor(seed: number) { this.s = seed >>> 0; }
+    constructor(seed: number) {
+        this.s = seed >>> 0;
+    }
     next(): number {
         this.s = (Math.imul(this.s, 1664525) + 1013904223) >>> 0;
         return this.s;
     }
-    float(): number { return (this.next() / 0xffffffff) * 2 - 1; }
-    uint3(): number { return this.next() % 3; }
+    float(): number {
+        return (this.next() / 0xffffffff) * 2 - 1;
+    }
+    uint3(): number {
+        return this.next() % 3;
+    }
 }
-
 
 type NetData = {
     bodyIds: number[];
@@ -79,12 +84,14 @@ function buildNet(physics: PhysicsState): NetData {
                 (x === NB_X - 1 && y === 0) ||
                 (x === NB_X - 1 && y === NB_Y - 1);
             const mass = corner ? 0 : 1;
-            handles.push(api.createRigidBody(physics, {
-                shape: sphereShapeId,
-                motionType: corner ? MotionType.STATIC : MotionType.DYNAMIC,
-                position: gridPos(x, y),
-                mass,
-            }));
+            handles.push(
+                api.createRigidBody(physics, {
+                    shape: sphereShapeId,
+                    motionType: corner ? MotionType.STATIC : MotionType.DYNAMIC,
+                    position: gridPos(x, y),
+                    mass,
+                }),
+            );
         }
     }
 
@@ -123,12 +130,14 @@ function buildNet(physics: PhysicsState): NetData {
                 const ry = rng.float();
                 const shapeIndex = rng.uint3();
                 const shape = shapeIndex === 0 ? dropSphereShapeId : dropBoxShapeId;
-                dropIds.push(api.createRigidBody(physics, {
-                    shape,
-                    motionType: MotionType.DYNAMIC,
-                    position: [rx + cx * areaScale, yy, ry + cy * areaScale],
-                    mass: 1,
-                }));
+                dropIds.push(
+                    api.createRigidBody(physics, {
+                        shape,
+                        motionType: MotionType.DYNAMIC,
+                        position: [rx + cx * areaScale, yy, ry + cy * areaScale],
+                        mass: 1,
+                    }),
+                );
             }
         }
         yy += DROP_HE * 5;

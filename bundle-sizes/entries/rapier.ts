@@ -1,4 +1,4 @@
-import RAPIER from '@dimforge/rapier3d'
+import RAPIER from '@dimforge/rapier3d-simd'
 
 const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 })
 

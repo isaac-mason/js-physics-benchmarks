@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Spherical Joint Net — port of PEEL's SphericalJointNet scene.
@@ -56,12 +56,14 @@ function buildNet(physics: PhysicsState): NetData {
     const handles: number[] = [];
     for (let y = 0; y < NB_Y; y++) {
         for (let x = 0; x < NB_X; x++) {
-            handles.push(api.createRigidBody(physics, {
-                shape: sphereShapeId,
-                motionType: MotionType.DYNAMIC,
-                position: gridPos(x, y),
-                mass: 1,
-            }));
+            handles.push(
+                api.createRigidBody(physics, {
+                    shape: sphereShapeId,
+                    motionType: MotionType.DYNAMIC,
+                    position: gridPos(x, y),
+                    mass: 1,
+                }),
+            );
         }
     }
 

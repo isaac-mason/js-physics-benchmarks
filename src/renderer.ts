@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { ShapeType, MotionType, type PhysicsShape, type PhysicsState } from './api';
+import { MotionType, type PhysicsShape, type PhysicsState, ShapeType } from './api';
 
 const UNIT_BOX_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
 UNIT_BOX_GEOMETRY.deleteAttribute('uv');

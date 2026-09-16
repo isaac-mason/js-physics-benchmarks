@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Hinge Joint Chain — port of PEEL's HingeJointChain scene.
@@ -12,9 +12,9 @@ import type { Renderer } from '../renderer';
 
 const NB_BOXES = 20;
 const NB_ROWS = 20;
-const HEX = 1.0;  // half-extent X
-const HEY = 1.0;  // half-extent Y
-const HEZ = 2.0;  // half-extent Z
+const HEX = 1.0; // half-extent X
+const HEY = 1.0; // half-extent Y
+const HEZ = 2.0; // half-extent Z
 const ALTITUDE = 40;
 const HINGE_AXIS: [number, number, number] = [0, 0, 1];
 
@@ -40,32 +40,30 @@ function buildChains(physics: PhysicsState): ChainData {
         const rowBoxIds: number[] = [];
 
         // First box is static (mass=0)
-        rowBoxIds.push(api.createRigidBody(physics, {
-            shape: boxShapeId,
-            motionType: MotionType.STATIC,
-            position: [0, ALTITUDE, z],
-        }));
+        rowBoxIds.push(
+            api.createRigidBody(physics, {
+                shape: boxShapeId,
+                motionType: MotionType.STATIC,
+                position: [0, ALTITUDE, z],
+            }),
+        );
 
         // Remaining boxes are dynamic
         for (let j = 1; j < NB_BOXES; j++) {
-            rowBoxIds.push(api.createRigidBody(physics, {
-                shape: boxShapeId,
-                motionType: MotionType.DYNAMIC,
-                position: [j * HEX * 2, ALTITUDE, z],
-                mass: 1,
-            }));
+            rowBoxIds.push(
+                api.createRigidBody(physics, {
+                    shape: boxShapeId,
+                    motionType: MotionType.DYNAMIC,
+                    position: [j * HEX * 2, ALTITUDE, z],
+                    mass: 1,
+                }),
+            );
         }
 
         // Hinges between adjacent boxes; anchor at right edge of box j
         for (let j = 0; j < NB_BOXES - 1; j++) {
             const ax = j * HEX * 2 + HEX;
-            jointIds.push(api.createHingeConstraint(
-                physics,
-                rowBoxIds[j]!,
-                rowBoxIds[j + 1]!,
-                [ax, ALTITUDE, z],
-                HINGE_AXIS,
-            ));
+            jointIds.push(api.createHingeConstraint(physics, rowBoxIds[j]!, rowBoxIds[j + 1]!, [ax, ALTITUDE, z], HINGE_AXIS));
         }
 
         boxIds.push(...rowBoxIds);

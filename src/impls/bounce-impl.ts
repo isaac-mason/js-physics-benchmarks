@@ -1,10 +1,15 @@
-import { type Body, type CastResult, type Constraint, Ray, Vec3 as BounceVec3, World } from '@perplexdotgg/bounce';
+import { type Body, Vec3 as BounceVec3, type CastResult, type Constraint, Ray, World } from '@perplexdotgg/bounce';
+import { vec3 } from 'mathcat';
 import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { Capability, MotionType, ShapeType } from '../api';
-import { vec3 } from 'mathcat';
 import { rotateByConjugate, worldToLocal } from './impl-helpers';
 
-export const capabilities: ReadonlySet<Capability> = new Set([Capability.Raycast, Capability.ContactListener, Capability.HingeLimits, Capability.ConvexHull]);
+export const capabilities: ReadonlySet<Capability> = new Set([
+    Capability.Raycast,
+    Capability.ContactListener,
+    Capability.HingeLimits,
+    Capability.ConvexHull,
+]);
 
 type ImplState = {
     world: World;
@@ -193,40 +198,72 @@ function bounceTransforms(bodyA: Body, bodyB: Body) {
 
 export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: Body, bodyB: Body): Constraint {
     const { posA, quatA, posB, quatB } = bounceTransforms(bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, posA, quatA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, posB, quatB);
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchor, posA, quatA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchor, posB, quatB);
     return state.world.createPointConstraint({ bodyA, bodyB, positionA: lA, positionB: lB });
 }
 
 export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: Body, bodyB: Body): Constraint {
     const { posA, quatA, posB, quatB } = bounceTransforms(bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, posA, quatA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, posB, quatB);
-    const hA: Vec3 = [0, 0, 0]; rotateByConjugate(hA, axis, quatA);
-    const hB: Vec3 = [0, 0, 0]; rotateByConjugate(hB, axis, quatB);
-    const normalA: Vec3 = [0, 0, 0]; vec3.perpendicular(normalA, hA);
-    const normalB: Vec3 = [0, 0, 0]; vec3.perpendicular(normalB, hB);
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchor, posA, quatA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchor, posB, quatB);
+    const hA: Vec3 = [0, 0, 0];
+    rotateByConjugate(hA, axis, quatA);
+    const hB: Vec3 = [0, 0, 0];
+    rotateByConjugate(hB, axis, quatB);
+    const normalA: Vec3 = [0, 0, 0];
+    vec3.perpendicular(normalA, hA);
+    const normalB: Vec3 = [0, 0, 0];
+    vec3.perpendicular(normalB, hB);
     // Use non-prefixed fields (pointA, hingeA, normalA) — LOCAL-space inputs in the default local frame mode.
     return state.world.createHingeConstraint({ bodyA, bodyB, pointA: lA, pointB: lB, hingeA: hA, hingeB: hB, normalA, normalB });
 }
 
 export function createFixedJoint(state: ImplState, bodyA: Body, bodyB: Body): Constraint {
     const { posA, quatA, posB, quatB } = bounceTransforms(bodyA, bodyB);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, posA, posB, quatB);
-    const worldXA: Vec3 = [0, 0, 0]; vec3.transformQuat(worldXA, [1, 0, 0], quatA);
-    const worldYA: Vec3 = [0, 0, 0]; vec3.transformQuat(worldYA, [0, 1, 0], quatA);
-    const axisXB: Vec3 = [0, 0, 0]; rotateByConjugate(axisXB, worldXA, quatB);
-    const axisYB: Vec3 = [0, 0, 0]; rotateByConjugate(axisYB, worldYA, quatB);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, posA, posB, quatB);
+    const worldXA: Vec3 = [0, 0, 0];
+    vec3.transformQuat(worldXA, [1, 0, 0], quatA);
+    const worldYA: Vec3 = [0, 0, 0];
+    vec3.transformQuat(worldYA, [0, 1, 0], quatA);
+    const axisXB: Vec3 = [0, 0, 0];
+    rotateByConjugate(axisXB, worldXA, quatB);
+    const axisYB: Vec3 = [0, 0, 0];
+    rotateByConjugate(axisYB, worldYA, quatB);
     return state.world.createFixedConstraint({ bodyA, bodyB, positionB: lB, axisXB, axisYB });
 }
 
-export function createDistanceJoint(state: ImplState, anchorA: Vec3, anchorB: Vec3, minDistance: number | undefined, maxDistance: number | undefined, bodyA: Body, bodyB: Body): Constraint {
+export function createDistanceJoint(
+    state: ImplState,
+    anchorA: Vec3,
+    anchorB: Vec3,
+    minDistance: number | undefined,
+    maxDistance: number | undefined,
+    bodyA: Body,
+    bodyB: Body,
+): Constraint {
     const { posA, quatA, posB, quatB } = bounceTransforms(bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchorA, posA, quatA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchorB, posB, quatB);
-    const dx = anchorA[0] - anchorB[0], dy = anchorA[1] - anchorB[1], dz = anchorA[2] - anchorB[2];
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchorA, posA, quatA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchorB, posB, quatB);
+    const dx = anchorA[0] - anchorB[0],
+        dy = anchorA[1] - anchorB[1],
+        dz = anchorA[2] - anchorB[2];
     const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    return state.world.createDistanceConstraint({ bodyA, bodyB, localPositionA: lA, localPositionB: lB, minDistance: minDistance ?? 0, maxDistance: maxDistance ?? d });
+    return state.world.createDistanceConstraint({
+        bodyA,
+        bodyB,
+        localPositionA: lA,
+        localPositionB: lB,
+        minDistance: minDistance ?? 0,
+        maxDistance: maxDistance ?? d,
+    });
 }
 
 export function removeJoint(_state: ImplState, handle: Constraint): void {

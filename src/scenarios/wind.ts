@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Wind — an original scene (box3d's "Wind" is a jointed flag, which needs joints
@@ -39,7 +39,11 @@ function buildDebris(physics: PhysicsState, boxShapeId: number, n: number): numb
             api.createRigidBody(physics, {
                 shape: boxShapeId,
                 motionType: MotionType.DYNAMIC,
-                position: [randomInRange(-BIN_HALF + 1, BIN_HALF - 1), BOX_HALF + 0.02, randomInRange(-BIN_HALF + 1, BIN_HALF - 1)],
+                position: [
+                    randomInRange(-BIN_HALF + 1, BIN_HALF - 1),
+                    BOX_HALF + 0.02,
+                    randomInRange(-BIN_HALF + 1, BIN_HALF - 1),
+                ],
                 mass: 1,
                 friction: 0.3,
                 restitution: 0.1,
@@ -67,7 +71,11 @@ export const createWindScenario = () =>
             renderer.controls.target.set(0, 0, 0);
             renderer.controls.update();
 
-            const floor = api.createShape(physics, { type: ShapeType.BOX, halfExtents: [BIN_HALF, 0.5, BIN_HALF], convexRadius: 0.05 });
+            const floor = api.createShape(physics, {
+                type: ShapeType.BOX,
+                halfExtents: [BIN_HALF, 0.5, BIN_HALF],
+                convexRadius: 0.05,
+            });
             api.createRigidBody(physics, { shape: floor, motionType: MotionType.STATIC, position: [0, -0.5, 0] });
 
             // Bin walls so the debris stays in view.

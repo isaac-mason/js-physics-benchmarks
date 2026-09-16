@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { createScenario } from './types';
-import { MotionType, ShapeType, createRaycastResult } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { createRaycastResult, MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Sea of Static Boxes — port of PEEL's "SeaOfStaticBoxes" (CATEGORY_STATIC_SCENE)
@@ -97,7 +97,14 @@ export const createSeaOfStaticBoxesScenario = () =>
             hitDots.count = 0;
             renderer.scene.add(hitDots);
 
-            return { boxHandles: handles, boxShapeIds: shapeIds, builtGrid: DEFAULT_GRID, hitDots, rayResult: createRaycastResult(), phase: 0 };
+            return {
+                boxHandles: handles,
+                boxShapeIds: shapeIds,
+                builtGrid: DEFAULT_GRID,
+                hitDots,
+                rayResult: createRaycastResult(),
+                phase: 0,
+            };
         },
 
         preUpdate: (state: ScenarioState, physics: PhysicsState, _renderer: Renderer, controls: Controls, dt: number): void => {

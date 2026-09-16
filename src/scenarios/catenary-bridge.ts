@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Quat } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Catenary Bridge — port of PEEL's CatenaryBridge scene.
@@ -13,9 +13,9 @@ import type { Renderer } from '../renderer';
 
 const NB_BOXES = 20;
 const NB_ROWS = 10;
-const HEX = 1.0;   // plank half-extent along bridge (X)
-const HEY = 0.1;   // plank half-height
-const HEZ = 2.0;   // plank half-depth
+const HEX = 1.0; // plank half-extent along bridge (X)
+const HEY = 0.1; // plank half-height
+const HEZ = 2.0; // plank half-depth
 const ALTITUDE = 40;
 const CATENARY_COEFF = 20.0;
 const SPHERE_RADIUS = 1.0;
@@ -64,19 +64,24 @@ function buildBridges(physics: PhysicsState): BridgeData {
         const z = row * HEZ * 4;
 
         // Drop sphere at start of row
-        bodyIds.push(api.createRigidBody(physics, {
-            shape: sphereShapeId,
-            motionType: MotionType.DYNAMIC,
-            position: [0, ALTITUDE + SPHERE_RADIUS * 3, z],
-            mass: 10,
-        }));
+        bodyIds.push(
+            api.createRigidBody(physics, {
+                shape: sphereShapeId,
+                motionType: MotionType.DYNAMIC,
+                position: [0, ALTITUDE + SPHERE_RADIUS * 3, z],
+                mass: 10,
+            }),
+        );
 
         // Build planks with catenary chaining
         const plankIds: number[] = [];
         const rightEdges: [number, number, number][] = [];
 
-        let px = 0, py = ALTITUDE, pz = z; // running position (Pos in PEEL)
-        let rightX = 0, rightY = 0;        // RightPos XY from previous plank
+        let px = 0,
+            py = ALTITUDE,
+            pz = z; // running position (Pos in PEEL)
+        let rightX = 0,
+            rightY = 0; // RightPos XY from previous plank
 
         for (let i = 0; i < NB_BOXES; i++) {
             const alpha = Math.atan(dy[i]!);
@@ -94,14 +99,16 @@ function buildBridges(physics: PhysicsState): BridgeData {
                 py += rightY - leftY;
             }
 
-            const mass = (i === 0 || i === NB_BOXES - 1) ? 0 : 1;
-            plankIds.push(api.createRigidBody(physics, {
-                shape: plankShapeId,
-                motionType: mass === 0 ? MotionType.STATIC : MotionType.DYNAMIC,
-                position: [px, py, pz],
-                quaternion: quatRotZ(angle),
-                mass,
-            }));
+            const mass = i === 0 || i === NB_BOXES - 1 ? 0 : 1;
+            plankIds.push(
+                api.createRigidBody(physics, {
+                    shape: plankShapeId,
+                    motionType: mass === 0 ? MotionType.STATIC : MotionType.DYNAMIC,
+                    position: [px, py, pz],
+                    quaternion: quatRotZ(angle),
+                    mass,
+                }),
+            );
 
             // Track right edge of this plank as the hinge anchor
             rightX = px + rx * HEX;
@@ -117,13 +124,7 @@ function buildBridges(physics: PhysicsState): BridgeData {
 
         // Hinges between adjacent planks at right-edge world positions
         for (let i = 0; i < NB_BOXES - 1; i++) {
-            jointIds.push(api.createHingeConstraint(
-                physics,
-                plankIds[i]!,
-                plankIds[i + 1]!,
-                rightEdges[i]!,
-                [0, 0, 1],
-            ));
+            jointIds.push(api.createHingeConstraint(physics, plankIds[i]!, plankIds[i + 1]!, rightEdges[i]!, [0, 0, 1]));
         }
     }
 

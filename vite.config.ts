@@ -10,7 +10,7 @@ export default defineConfig({
   ],
   optimizeDeps: {
     // These ship their own ESM + WASM — exclude from Vite's dep pre-bundling
-    exclude: ['@dimforge/rapier3d', 'jolt-physics'],
+    exclude: ['@dimforge/rapier3d-simd', 'jolt-physics'],
   },
   build: {
     target: 'esnext'

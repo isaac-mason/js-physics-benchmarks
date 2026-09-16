@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Limited Hinge Joint — port of PEEL's LimitedHingeJoint scene.
@@ -15,8 +15,8 @@ const LIMIT = Math.PI / 4; // 45°
 
 // Per-pair: hinge axis, static pos, dynamic pos
 const PAIRS: { axis: [number, number, number]; sx: number; dx: number }[] = [
-    { axis: [0, 0, 1], sx: 0,  dx: 2  },
-    { axis: [0, 1, 0], sx: 8,  dx: 10 },
+    { axis: [0, 0, 1], sx: 0, dx: 2 },
+    { axis: [0, 1, 0], sx: 8, dx: 10 },
     { axis: [1, 0, 0], sx: 16, dx: 18 },
 ];
 
@@ -50,11 +50,7 @@ function build(physics: PhysicsState): ScenarioState {
         bodyIds.push(staticId, dynamicId);
 
         // Anchor at midpoint: StaticPos + Disp*0.5 = (sx+1, 19, 0)
-        const jointId = api.createHingeConstraint(
-            physics, staticId, dynamicId,
-            [sx + 1, 19, 0],
-            axis,
-        );
+        const jointId = api.createHingeConstraint(physics, staticId, dynamicId, [sx + 1, 19, 0], axis);
         api.setHingeLimits(physics, jointId, -LIMIT, LIMIT);
         jointIds.push(jointId);
     }

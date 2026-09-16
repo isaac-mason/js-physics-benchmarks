@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Arch — faithful port of box3d's "Arch" stacking sample. A self-supporting
@@ -18,14 +18,26 @@ const DENSITY = 200;
 
 // Inner (ps1) and outer (ps2) arch curves, from box3d, before scaling.
 const PS1: [number, number][] = [
-    [16.0, 0.0], [14.93803712795643, 5.133601056842984], [13.79871746027416, 10.24928069555078],
-    [12.56252963284711, 15.34107019122473], [11.20040987372525, 20.39856541571217], [9.66521217819836, 25.40369899225096],
-    [7.87179930638133, 30.3179337000085], [5.635199558196225, 35.03820717801641], [2.405937953536585, 39.09554102558315],
+    [16.0, 0.0],
+    [14.93803712795643, 5.133601056842984],
+    [13.79871746027416, 10.24928069555078],
+    [12.56252963284711, 15.34107019122473],
+    [11.20040987372525, 20.39856541571217],
+    [9.66521217819836, 25.40369899225096],
+    [7.87179930638133, 30.3179337000085],
+    [5.635199558196225, 35.03820717801641],
+    [2.405937953536585, 39.09554102558315],
 ];
 const PS2: [number, number][] = [
-    [24.0, 0.0], [22.33619528222415, 6.02299846205841], [20.54936888969905, 12.00964361211476],
-    [18.60854610798073, 17.9470321677465], [16.46769273811807, 23.81367936585418], [14.05325025774858, 29.57079353071012],
-    [11.23551045834022, 35.13775818285372], [7.752568160730571, 40.30450679009583], [3.016931552701656, 44.28891593799322],
+    [24.0, 0.0],
+    [22.33619528222415, 6.02299846205841],
+    [20.54936888969905, 12.00964361211476],
+    [18.60854610798073, 17.9470321677465],
+    [16.46769273811807, 23.81367936585418],
+    [14.05325025774858, 29.57079353071012],
+    [11.23551045834022, 35.13775818285372],
+    [7.752568160730571, 40.30450679009583],
+    [3.016931552701656, 44.28891593799322],
 ];
 
 /** |shoelace| area of a 2D quad, for the block cross-section. */
@@ -66,7 +78,14 @@ export const createArchScenario = () =>
             const addBlock = (a: [number, number], b: [number, number], c: [number, number], d: [number, number]): void => {
                 const shape = api.createShape(physics, { type: ShapeType.CONVEX_HULL, points: blockPoints(a, b, c, d) });
                 const mass = DENSITY * quadArea(a, b, c, d) * (2 * HALF_DEPTH);
-                api.createRigidBody(physics, { shape, motionType: MotionType.DYNAMIC, position: [0, 0, 0], mass, friction: 0.6, restitution: 0 });
+                api.createRigidBody(physics, {
+                    shape,
+                    motionType: MotionType.DYNAMIC,
+                    position: [0, 0, 0],
+                    mass,
+                    friction: 0.6,
+                    restitution: 0,
+                });
             };
 
             // Right half.

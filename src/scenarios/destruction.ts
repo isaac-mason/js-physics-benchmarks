@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Vec3 } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Destruction — port of box3d's "Destruction" benchmark. A dense cube of boxes
@@ -31,7 +31,7 @@ type Controls = { grid: number; respawn: number };
 function spawnAndExplode(physics: PhysicsState, grid: number): { boxes: number[]; shapeIds: number[] } {
     const a = EXTENT / grid;
     const boxHalf = 0.8 * a;
-    const boxArea = (2 * boxHalf) * (2 * boxHalf); // representative projected area
+    const boxArea = 2 * boxHalf * (2 * boxHalf); // representative projected area
     const center: Vec3 = [0, 2 * EXTENT, 0];
     const radius = EXTENT;
     const falloff = 0.5 * EXTENT;
@@ -50,7 +50,14 @@ function spawnAndExplode(physics: PhysicsState, grid: number): { boxes: number[]
                 if (rand() < 0.5) continue; // ~half the cells are empty (box3d randomises)
                 const shape = api.createShape(physics, { type: ShapeType.BOX, halfExtents: [boxHalf, boxHalf, boxHalf] });
                 const pos: Vec3 = [(2 * i - grid + 1) * a, (2 * j + 1) * a, (2 * k - grid + 1) * a];
-                const id = api.createRigidBody(physics, { shape, motionType: MotionType.DYNAMIC, position: pos, mass: 1, friction: 0.5, restitution: 0 });
+                const id = api.createRigidBody(physics, {
+                    shape,
+                    motionType: MotionType.DYNAMIC,
+                    position: pos,
+                    mass: 1,
+                    friction: 0.5,
+                    restitution: 0,
+                });
                 shapeIds.push(shape);
                 boxes.push(id);
 

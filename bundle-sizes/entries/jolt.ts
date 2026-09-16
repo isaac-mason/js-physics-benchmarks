@@ -1,4 +1,4 @@
-import initJolt from 'jolt-physics/wasm'
+import initJolt from '../../src/lib/jolt/jolt-physics.st-simd.wasm.js'
 
 const Jolt = await initJolt()
 

@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Distance Joint — port of PEEL's DistanceJoint scene.
@@ -33,11 +33,7 @@ function build(physics: PhysicsState): ScenarioState {
         mass: 1,
     });
 
-    const jointId = api.createDistanceConstraint(
-        physics, staticId, dynamicId,
-        [0, 20, 0], [2, 20, 0],
-        undefined, MAX_DISTANCE,
-    );
+    const jointId = api.createDistanceConstraint(physics, staticId, dynamicId, [0, 20, 0], [2, 20, 0], undefined, MAX_DISTANCE);
 
     return { bodyIds: [staticId, dynamicId], jointId, shapeId };
 }

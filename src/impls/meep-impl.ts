@@ -1,27 +1,32 @@
-import { Joint } from '@woosh/meep-engine/src/engine/physics/ecs/Joint.js';
+import { Ray3 } from '@woosh/meep-engine/src/core/geom/3d/ray/Ray3.js';
 import type { AbstractShape3D } from '@woosh/meep-engine/src/core/geom/3d/shape/AbstractShape3D.js';
 import { BoxShape3D } from '@woosh/meep-engine/src/core/geom/3d/shape/BoxShape3D.js';
-import { shape_mesh_from_geometry } from '@woosh/meep-engine/src/core/geom/3d/shape/shape_mesh_from_geometry.js';
 import { SphereShape3D } from '@woosh/meep-engine/src/core/geom/3d/shape/SphereShape3D.js';
-import { Ray3 } from '@woosh/meep-engine/src/core/geom/3d/ray/Ray3.js';
-import { EntityComponentDataset } from '@woosh/meep-engine/src/engine/ecs/EntityComponentDataset.js';
+import { shape_mesh_from_geometry } from '@woosh/meep-engine/src/core/geom/3d/shape/shape_mesh_from_geometry.js';
 import EntityBuilder from '@woosh/meep-engine/src/engine/ecs/Entity.js';
+import { EntityComponentDataset } from '@woosh/meep-engine/src/engine/ecs/EntityComponentDataset.js';
 import { EntityManager } from '@woosh/meep-engine/src/engine/ecs/EntityManager.js';
 import type { System } from '@woosh/meep-engine/src/engine/ecs/System.js';
 import { Transform } from '@woosh/meep-engine/src/engine/ecs/transform/Transform.js';
 import { BodyKind } from '@woosh/meep-engine/src/engine/physics/ecs/BodyKind.js';
 import { Collider } from '@woosh/meep-engine/src/engine/physics/ecs/Collider.js';
 import { ColliderObserverSystem } from '@woosh/meep-engine/src/engine/physics/ecs/ColliderObserverSystem.js';
+import { Joint } from '@woosh/meep-engine/src/engine/physics/ecs/Joint.js';
 import { PhysicsSystem } from '@woosh/meep-engine/src/engine/physics/ecs/PhysicsSystem.js';
-import { ContactEventKind } from '@woosh/meep-engine/src/engine/physics/events/ContactEventBuffer.js';
 import { RigidBody } from '@woosh/meep-engine/src/engine/physics/ecs/RigidBody.js';
+import { ContactEventKind } from '@woosh/meep-engine/src/engine/physics/events/ContactEventBuffer.js';
 import { PhysicsSurfacePoint } from '@woosh/meep-engine/src/engine/physics/queries/PhysicsSurfacePoint.js';
 
 import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { Capability, MotionType, ShapeType } from '../api';
 import { quatFromXToAxis, rotateByConjugate, worldToLocal } from './impl-helpers';
 
-export const capabilities: ReadonlySet<Capability> = new Set([Capability.Raycast, Capability.ContactListener, Capability.HingeLimits, Capability.ConvexHull]);
+export const capabilities: ReadonlySet<Capability> = new Set([
+    Capability.Raycast,
+    Capability.ContactListener,
+    Capability.HingeLimits,
+    Capability.ConvexHull,
+]);
 
 type MeepShapeHandle = {
     shape: AbstractShape3D;
@@ -128,24 +133,34 @@ function setInverseInertia(rb: RigidBody, desc: PhysicsShape, mass: number): voi
 }
 
 function aabbHalfExtents(points: ArrayLike<number>): [number, number, number] {
-    let minX = Infinity, minY = Infinity, minZ = Infinity;
-    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    let minX = Infinity,
+        minY = Infinity,
+        minZ = Infinity;
+    let maxX = -Infinity,
+        maxY = -Infinity,
+        maxZ = -Infinity;
     for (let i = 0; i < points.length; i += 3) {
         const x = points[i] as number;
         const y = points[i + 1] as number;
         const z = points[i + 2] as number;
-        if (x < minX) minX = x; if (x > maxX) maxX = x;
-        if (y < minY) minY = y; if (y > maxY) maxY = y;
-        if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+        if (z < minZ) minZ = z;
+        if (z > maxZ) maxZ = z;
     }
     return [(maxX - minX) * 0.5, (maxY - minY) * 0.5, (maxZ - minZ) * 0.5];
 }
 
 function motionToBodyKind(motionType: MotionType): number {
     switch (motionType) {
-        case MotionType.STATIC: return BodyKind.Static;
-        case MotionType.DYNAMIC: return BodyKind.Dynamic;
-        case MotionType.KINEMATIC: return BodyKind.KinematicPosition;
+        case MotionType.STATIC:
+            return BodyKind.Static;
+        case MotionType.DYNAMIC:
+            return BodyKind.Dynamic;
+        case MotionType.KINEMATIC:
+            return BodyKind.KinematicPosition;
     }
 }
 
@@ -250,11 +265,7 @@ export function createRigidBody(state: ImplState, options: RigidBodyOptions, imp
     if (options.friction !== undefined) collider.friction = options.friction;
     if (options.restitution !== undefined) collider.restitution = options.restitution;
 
-    const entity = new EntityBuilder()
-        .add(transform)
-        .add(rb)
-        .add(collider)
-        .build(state.dataset);
+    const entity = new EntityBuilder().add(transform).add(rb).add(collider).build(state.dataset);
 
     const handle: BodyHandle = { entity, rb, transform };
     state.entityToBody.set(entity, handle);
@@ -285,11 +296,12 @@ export function setBodyPosition(state: ImplState, handle: BodyHandle, position: 
 }
 
 export function setBodyQuaternion(state: ImplState, handle: BodyHandle, quaternion: Quat): void {
-    state.physics.setPose(
-        handle.rb,
-        handle.transform.position,
-        { x: quaternion[0], y: quaternion[1], z: quaternion[2], w: quaternion[3] },
-    );
+    state.physics.setPose(handle.rb, handle.transform.position, {
+        x: quaternion[0],
+        y: quaternion[1],
+        z: quaternion[2],
+        w: quaternion[3],
+    });
 }
 
 export function setBodyLinearVelocity(state: ImplState, handle: BodyHandle, velocity: Vec3): void {
@@ -325,36 +337,58 @@ export function disposeContactListener(state: ImplState): void {
 
 function meepJoint(bodyA: BodyHandle, bodyB: BodyHandle): [Joint, Vec3, Quat, Vec3, Quat] {
     const joint = new Joint();
-    joint.entityA = bodyA.entity; joint.entityB = bodyB.entity;
+    joint.entityA = bodyA.entity;
+    joint.entityB = bodyB.entity;
     const posA: Vec3 = [bodyA.transform.position.x, bodyA.transform.position.y, bodyA.transform.position.z];
-    const quatA: Quat = [bodyA.transform.rotation.x, bodyA.transform.rotation.y, bodyA.transform.rotation.z, bodyA.transform.rotation.w];
+    const quatA: Quat = [
+        bodyA.transform.rotation.x,
+        bodyA.transform.rotation.y,
+        bodyA.transform.rotation.z,
+        bodyA.transform.rotation.w,
+    ];
     const posB: Vec3 = [bodyB.transform.position.x, bodyB.transform.position.y, bodyB.transform.position.z];
-    const quatB: Quat = [bodyB.transform.rotation.x, bodyB.transform.rotation.y, bodyB.transform.rotation.z, bodyB.transform.rotation.w];
+    const quatB: Quat = [
+        bodyB.transform.rotation.x,
+        bodyB.transform.rotation.y,
+        bodyB.transform.rotation.z,
+        bodyB.transform.rotation.w,
+    ];
     return [joint, posA, quatA, posB, quatB];
 }
 
 function meepEnqueue(state: ImplState, joint: Joint): Joint {
-    state.pendingJoints.push(joint); return joint;
+    state.pendingJoints.push(joint);
+    return joint;
 }
 
 export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: BodyHandle, bodyB: BodyHandle): Joint {
     const [joint, posA, quatA, posB, quatB] = meepJoint(bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, posA, quatA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, posB, quatB);
-    joint.localAnchorA.set(lA[0], lA[1], lA[2]); joint.localAnchorB.set(lB[0], lB[1], lB[2]);
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchor, posA, quatA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchor, posB, quatB);
+    joint.localAnchorA.set(lA[0], lA[1], lA[2]);
+    joint.localAnchorB.set(lB[0], lB[1], lB[2]);
     joint.asBallSocket();
     return meepEnqueue(state, joint);
 }
 
 export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: BodyHandle, bodyB: BodyHandle): Joint {
     const [joint, posA, quatA, posB, quatB] = meepJoint(bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, posA, quatA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, posB, quatB);
-    joint.localAnchorA.set(lA[0], lA[1], lA[2]); joint.localAnchorB.set(lB[0], lB[1], lB[2]);
-    const hA: Vec3 = [0, 0, 0]; rotateByConjugate(hA, axis, quatA);
-    const hB: Vec3 = [0, 0, 0]; rotateByConjugate(hB, axis, quatB);
-    const fqA: Quat = [0, 0, 0, 1]; quatFromXToAxis(fqA, hA[0], hA[1], hA[2]);
-    const fqB: Quat = [0, 0, 0, 1]; quatFromXToAxis(fqB, hB[0], hB[1], hB[2]);
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchor, posA, quatA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchor, posB, quatB);
+    joint.localAnchorA.set(lA[0], lA[1], lA[2]);
+    joint.localAnchorB.set(lB[0], lB[1], lB[2]);
+    const hA: Vec3 = [0, 0, 0];
+    rotateByConjugate(hA, axis, quatA);
+    const hB: Vec3 = [0, 0, 0];
+    rotateByConjugate(hB, axis, quatB);
+    const fqA: Quat = [0, 0, 0, 1];
+    quatFromXToAxis(fqA, hA[0], hA[1], hA[2]);
+    const fqB: Quat = [0, 0, 0, 1];
+    quatFromXToAxis(fqB, hB[0], hB[1], hB[2]);
     joint.localBasisA.set(fqA[0], fqA[1], fqA[2], fqA[3]);
     joint.localBasisB.set(fqB[0], fqB[1], fqB[2], fqB[3]);
     joint.asHinge(0); // 0 = free angular axis X
@@ -363,18 +397,31 @@ export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bod
 
 export function createFixedJoint(state: ImplState, bodyA: BodyHandle, bodyB: BodyHandle): Joint {
     const [joint, posA, , posB, quatB] = meepJoint(bodyA, bodyB);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, posA, posB, quatB);
-    joint.localAnchorA.set(0, 0, 0); joint.localAnchorB.set(lB[0], lB[1], lB[2]);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, posA, posB, quatB);
+    joint.localAnchorA.set(0, 0, 0);
+    joint.localAnchorB.set(lB[0], lB[1], lB[2]);
     joint.asWeld();
     return meepEnqueue(state, joint);
 }
 
-export function createDistanceJoint(state: ImplState, anchorA: Vec3, anchorB: Vec3, _minDist: number | undefined, _maxDist: number | undefined, bodyA: BodyHandle, bodyB: BodyHandle): Joint {
+export function createDistanceJoint(
+    state: ImplState,
+    anchorA: Vec3,
+    anchorB: Vec3,
+    _minDist: number | undefined,
+    _maxDist: number | undefined,
+    bodyA: BodyHandle,
+    bodyB: BodyHandle,
+): Joint {
     // Meep has no native distance constraint; use ball socket between anchors
     const [joint, posA, quatA, posB, quatB] = meepJoint(bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchorA, posA, quatA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchorB, posB, quatB);
-    joint.localAnchorA.set(lA[0], lA[1], lA[2]); joint.localAnchorB.set(lB[0], lB[1], lB[2]);
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchorA, posA, quatA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchorB, posB, quatB);
+    joint.localAnchorA.set(lA[0], lA[1], lA[2]);
+    joint.localAnchorB.set(lB[0], lB[1], lB[2]);
     joint.asBallSocket();
     return meepEnqueue(state, joint);
 }

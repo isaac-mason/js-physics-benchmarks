@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Quat, Vec3 } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Tumbler — a rotating kinematic open tube that endlessly tumbles a pile of
@@ -24,10 +24,10 @@ function quatZ(angle: number): Quat {
 
 // Four walls of the open square tube, as (localPos, localHalfExtents).
 const WALLS: { pos: Vec3; half: Vec3 }[] = [
-    { pos: [0,  S, 0], half: [S + WALL_T, WALL_T, WALL_D] }, // top
+    { pos: [0, S, 0], half: [S + WALL_T, WALL_T, WALL_D] }, // top
     { pos: [0, -S, 0], half: [S + WALL_T, WALL_T, WALL_D] }, // bottom
     { pos: [-S, 0, 0], half: [WALL_T, S + WALL_T, WALL_D] }, // left
-    { pos: [ S, 0, 0], half: [WALL_T, S + WALL_T, WALL_D] }, // right
+    { pos: [S, 0, 0], half: [WALL_T, S + WALL_T, WALL_D] }, // right
 ];
 
 type ScenarioState = {

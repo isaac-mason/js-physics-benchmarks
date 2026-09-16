@@ -29,8 +29,16 @@ export type PhysicsImpl<
     createPointJoint(world: TWorld, anchor: Vec3, bodyA: TBody, bodyB: TBody): TJoint;
     createHingeJoint(world: TWorld, anchor: Vec3, axis: Vec3, bodyA: TBody, bodyB: TBody): TJoint;
     createFixedJoint(world: TWorld, bodyA: TBody, bodyB: TBody): TJoint;
-    createDistanceJoint(world: TWorld, anchorA: Vec3, anchorB: Vec3, minDistance: number | undefined, maxDistance: number | undefined, bodyA: TBody, bodyB: TBody): TJoint;
+    createDistanceJoint(
+        world: TWorld,
+        anchorA: Vec3,
+        anchorB: Vec3,
+        minDistance: number | undefined,
+        maxDistance: number | undefined,
+        bodyA: TBody,
+        bodyB: TBody,
+    ): TJoint;
     removeJoint(world: TWorld, handle: TJoint): void;
     setHingeMotor(world: TWorld, handle: TJoint, desc: HingeMotorDesc): void;
     setHingeLimits(world: TWorld, handle: TJoint, lower: number, upper: number): void;
-}
+};

@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Many Box Stacks — faithful port of PEEL's "ManySmallBoxStacks10" via its
@@ -73,7 +73,10 @@ export const createManyBoxStacksScenario = () =>
             const floor = api.createShape(physics, { type: ShapeType.BOX, halfExtents: [120, 0.5, 120], convexRadius: 0.05 });
             api.createRigidBody(physics, { shape: floor, motionType: MotionType.STATIC, position: [0, -0.5, 0] });
 
-            const boxShapeId = api.createShape(physics, { type: ShapeType.BOX, halfExtents: [BOX_EXTENT, BOX_EXTENT, BOX_EXTENT] });
+            const boxShapeId = api.createShape(physics, {
+                type: ShapeType.BOX,
+                halfExtents: [BOX_EXTENT, BOX_EXTENT, BOX_EXTENT],
+            });
             const handles = build(physics, boxShapeId, DEFAULT_STACKS);
 
             return { handles, boxShapeId, builtStacks: DEFAULT_STACKS };

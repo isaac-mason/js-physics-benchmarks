@@ -1,10 +1,15 @@
-import RAPIER from '@dimforge/rapier3d';
+import RAPIER from '@dimforge/rapier3d-simd';
+import { quat } from 'mathcat';
 import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { Capability, MotionType, ShapeType } from '../api';
-import { quat } from 'mathcat';
 import { worldToLocal } from './impl-helpers';
 
-export const capabilities: ReadonlySet<Capability> = new Set([Capability.Raycast, Capability.ContactListener, Capability.HingeLimits, Capability.ConvexHull]);
+export const capabilities: ReadonlySet<Capability> = new Set([
+    Capability.Raycast,
+    Capability.ContactListener,
+    Capability.HingeLimits,
+    Capability.ConvexHull,
+]);
 
 type ImplState = {
     world: RAPIER.World;
@@ -48,7 +53,7 @@ function motionTypeToRigidBodyDesc(motionType: MotionType): RAPIER.RigidBodyDesc
 }
 
 export async function init(): Promise<void> {
-    // @dimforge/rapier3d uses native ESM WASM imports — no async init needed
+    // @dimforge/rapier3d-simd uses native ESM WASM imports — no async init needed
 }
 
 export function disposeWorld(state: ImplState): void {
@@ -186,62 +191,100 @@ export function setBodyTranslationRotation(_state: ImplState, handle: RigidBody,
 }
 
 function rapierTransforms(bodyA: RigidBody, bodyB: RigidBody) {
-    const pA = bodyA.translation(), rA = bodyA.rotation();
-    const pB = bodyB.translation(), rB = bodyB.rotation();
+    const pA = bodyA.translation(),
+        rA = bodyA.rotation();
+    const pB = bodyB.translation(),
+        rB = bodyB.rotation();
     return {
-        posA: [pA.x, pA.y, pA.z] as Vec3, qA: [rA.x, rA.y, rA.z, rA.w] as Quat,
-        posB: [pB.x, pB.y, pB.z] as Vec3, qB: [rB.x, rB.y, rB.z, rB.w] as Quat,
+        posA: [pA.x, pA.y, pA.z] as Vec3,
+        qA: [rA.x, rA.y, rA.z, rA.w] as Quat,
+        posB: [pB.x, pB.y, pB.z] as Vec3,
+        qB: [rB.x, rB.y, rB.z, rB.w] as Quat,
     };
 }
 
 export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: RigidBody, bodyB: RigidBody): RAPIER.ImpulseJoint {
     const { posA, qA, posB, qB } = rapierTransforms(bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, posA, qA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, posB, qB);
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchor, posA, qA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchor, posB, qB);
     return state.world.createImpulseJoint(
         RAPIER.JointData.spherical({ x: lA[0], y: lA[1], z: lA[2] }, { x: lB[0], y: lB[1], z: lB[2] }),
-        bodyA, bodyB, true,
+        bodyA,
+        bodyB,
+        true,
     );
 }
 
-export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: RigidBody, bodyB: RigidBody): RAPIER.ImpulseJoint {
+export function createHingeJoint(
+    state: ImplState,
+    anchor: Vec3,
+    axis: Vec3,
+    bodyA: RigidBody,
+    bodyB: RigidBody,
+): RAPIER.ImpulseJoint {
     const { posA, qA, posB, qB } = rapierTransforms(bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, posA, qA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, posB, qB);
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchor, posA, qA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchor, posB, qB);
     return state.world.createImpulseJoint(
         RAPIER.JointData.revolute(
             { x: lA[0], y: lA[1], z: lA[2] },
             { x: lB[0], y: lB[1], z: lB[2] },
             { x: axis[0], y: axis[1], z: axis[2] },
         ),
-        bodyA, bodyB, true,
+        bodyA,
+        bodyB,
+        true,
     );
 }
 
 export function createFixedJoint(state: ImplState, bodyA: RigidBody, bodyB: RigidBody): RAPIER.ImpulseJoint {
     const { posA, qA, posB, qB } = rapierTransforms(bodyA, bodyB);
     // frame2 = conjB * qA so that qB * frame2 = qA (frames coincide in world)
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, posA, posB, qB);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, posA, posB, qB);
     const conjB: Quat = [-qB[0], -qB[1], -qB[2], qB[3]];
-    const frame2: Quat = [0, 0, 0, 1]; quat.multiply(frame2, conjB, qA);
+    const frame2: Quat = [0, 0, 0, 1];
+    quat.multiply(frame2, conjB, qA);
     return state.world.createImpulseJoint(
         RAPIER.JointData.fixed(
-            { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0, w: 1 },
-            { x: lB[0], y: lB[1], z: lB[2] }, { x: frame2[0], y: frame2[1], z: frame2[2], w: frame2[3] },
+            { x: 0, y: 0, z: 0 },
+            { x: 0, y: 0, z: 0, w: 1 },
+            { x: lB[0], y: lB[1], z: lB[2] },
+            { x: frame2[0], y: frame2[1], z: frame2[2], w: frame2[3] },
         ),
-        bodyA, bodyB, true,
+        bodyA,
+        bodyB,
+        true,
     );
 }
 
-export function createDistanceJoint(state: ImplState, anchorA: Vec3, anchorB: Vec3, _minDist: number | undefined, maxDistance: number | undefined, bodyA: RigidBody, bodyB: RigidBody): RAPIER.ImpulseJoint {
+export function createDistanceJoint(
+    state: ImplState,
+    anchorA: Vec3,
+    anchorB: Vec3,
+    _minDist: number | undefined,
+    maxDistance: number | undefined,
+    bodyA: RigidBody,
+    bodyB: RigidBody,
+): RAPIER.ImpulseJoint {
     const { posA, qA, posB, qB } = rapierTransforms(bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchorA, posA, qA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchorB, posB, qB);
-    const dx = anchorA[0] - anchorB[0], dy = anchorA[1] - anchorB[1], dz = anchorA[2] - anchorB[2];
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchorA, posA, qA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchorB, posB, qB);
+    const dx = anchorA[0] - anchorB[0],
+        dy = anchorA[1] - anchorB[1],
+        dz = anchorA[2] - anchorB[2];
     const maxDist = maxDistance ?? Math.sqrt(dx * dx + dy * dy + dz * dz);
     return state.world.createImpulseJoint(
         RAPIER.JointData.rope(maxDist, { x: lA[0], y: lA[1], z: lA[2] }, { x: lB[0], y: lB[1], z: lB[2] }),
-        bodyA, bodyB, true,
+        bodyA,
+        bodyB,
+        true,
     );
 }
 

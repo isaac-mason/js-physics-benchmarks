@@ -48,15 +48,15 @@ const ENGINES = [
     name: 'rapier',
     entry: 'entries/rapier.ts',
     wasm: [
-      'node_modules/@dimforge/rapier3d/rapier_wasm3d_bg.wasm',
+      'node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm',
     ],
   },
   {
     name: 'jolt',
     entry: 'entries/jolt.ts',
     wasm: [
-      // wasm-compat flavour (the default import) uses the base wasm
-      'node_modules/jolt-physics/dist/jolt-physics.wasm.wasm',
+      // local single-threaded + SIMD build (scripts/build-jolt-simd.sh)
+      'src/lib/jolt/jolt-physics.st-simd.wasm.wasm',
     ],
   },
   {
@@ -244,7 +244,7 @@ async function main() {
   }
   meta.versions = {
     crashcat: versionFor('crashcat'),
-    rapier: versionFor('@dimforge/rapier3d'),
+    rapier: versionFor('@dimforge/rapier3d-simd'),
     jolt: versionFor('jolt-physics'),
     cannon: versionFor('cannon-es'),
     bounce: versionFor('@perplexdotgg/bounce'),

@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Quat, Vec3 } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Dominoes — port of PEEL's "Dominos" (CATEGORY_BEHAVIOR). 128 dominoes stood
@@ -19,7 +19,17 @@ const KNOCK_IMPULSE = 4;
 const DEFAULT_RESTART = 9;
 
 /** Row-major 3x3 -> quaternion [x,y,z,w]. */
-function mat3ToQuat(m00: number, m01: number, m02: number, m10: number, m11: number, m12: number, m20: number, m21: number, m22: number): Quat {
+function mat3ToQuat(
+    m00: number,
+    m01: number,
+    m02: number,
+    m10: number,
+    m11: number,
+    m12: number,
+    m20: number,
+    m21: number,
+    m22: number,
+): Quat {
     const trace = m00 + m11 + m22;
     if (trace > 0) {
         const s = 0.5 / Math.sqrt(trace + 1);

@@ -1,7 +1,7 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
+import { createScenario } from './types';
 
 const DEFAULT_HEIGHT = 6;
 const BOX_SIZE = 1.0;

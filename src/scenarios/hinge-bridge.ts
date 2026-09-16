@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Vec3 } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Hinge Bridge — a row of planks suspended by hinge joints (Z-axis) from two
@@ -11,9 +11,9 @@ import type { Renderer } from '../renderer';
 // stability under impact. Inspired by PEEL's BridgeUsingHinges scene.
 // ---------------------------------------------------------------------------
 
-const PLANK_HX = 0.8;     // half-length along bridge (X)
-const PLANK_HY = 0.08;    // half-height (thin plank)
-const PLANK_HZ = 0.6;     // half-depth (perpendicular to bridge)
+const PLANK_HX = 0.8; // half-length along bridge (X)
+const PLANK_HY = 0.08; // half-height (thin plank)
+const PLANK_HZ = 0.6; // half-depth (perpendicular to bridge)
 const GAP = 0.05;
 const STEP = PLANK_HX * 2 + GAP;
 const BRIDGE_Y = 7;
@@ -46,29 +46,37 @@ function buildBridge(physics: PhysicsState, n: number, sphereMass: number): Brid
     const halfSpan = (n * STEP) / 2;
 
     const pillarShapeId = api.createShape(physics, { type: ShapeType.BOX, halfExtents: [0.3, 0.5, 0.6] });
-    const plankShapeId = api.createShape(physics, { type: ShapeType.BOX, halfExtents: [PLANK_HX, PLANK_HY, PLANK_HZ], convexRadius: 0.02 });
+    const plankShapeId = api.createShape(physics, {
+        type: ShapeType.BOX,
+        halfExtents: [PLANK_HX, PLANK_HY, PLANK_HZ],
+        convexRadius: 0.02,
+    });
     const sphereShapeId = api.createShape(physics, { type: ShapeType.SPHERE, radius: 0.7 });
 
     const leftAnchorId = api.createRigidBody(physics, {
-        shape: pillarShapeId, motionType: MotionType.STATIC,
+        shape: pillarShapeId,
+        motionType: MotionType.STATIC,
         position: [-halfSpan - 1, BRIDGE_Y, 0],
     });
     const rightAnchorId = api.createRigidBody(physics, {
-        shape: pillarShapeId, motionType: MotionType.STATIC,
+        shape: pillarShapeId,
+        motionType: MotionType.STATIC,
         position: [halfSpan + 1, BRIDGE_Y, 0],
     });
 
     const plankIds: number[] = [];
     for (let i = 0; i < n; i++) {
         const x = -halfSpan + PLANK_HX + i * STEP;
-        plankIds.push(api.createRigidBody(physics, {
-            shape: plankShapeId,
-            motionType: MotionType.DYNAMIC,
-            position: [x, BRIDGE_Y, 0],
-            mass: 2,
-            friction: 0.6,
-            restitution: 0,
-        }));
+        plankIds.push(
+            api.createRigidBody(physics, {
+                shape: plankShapeId,
+                motionType: MotionType.DYNAMIC,
+                position: [x, BRIDGE_Y, 0],
+                mass: 2,
+                friction: 0.6,
+                restitution: 0,
+            }),
+        );
     }
 
     const sphereId = api.createRigidBody(physics, {
@@ -132,8 +140,16 @@ export const createHingeBridgeScenario = () =>
             // Pillars holding the bridge ends up
             const pillarColShape = api.createShape(physics, { type: ShapeType.BOX, halfExtents: [0.3, BRIDGE_Y * 0.5, 0.3] });
             const halfSpanDefault = (DEFAULT_PLANKS * STEP) / 2;
-            api.createRigidBody(physics, { shape: pillarColShape, motionType: MotionType.STATIC, position: [-halfSpanDefault - 1, BRIDGE_Y * 0.5, 0] });
-            api.createRigidBody(physics, { shape: pillarColShape, motionType: MotionType.STATIC, position: [halfSpanDefault + 1, BRIDGE_Y * 0.5, 0] });
+            api.createRigidBody(physics, {
+                shape: pillarColShape,
+                motionType: MotionType.STATIC,
+                position: [-halfSpanDefault - 1, BRIDGE_Y * 0.5, 0],
+            });
+            api.createRigidBody(physics, {
+                shape: pillarColShape,
+                motionType: MotionType.STATIC,
+                position: [halfSpanDefault + 1, BRIDGE_Y * 0.5, 0],
+            });
 
             const bridge = buildBridge(physics, DEFAULT_PLANKS, DEFAULT_SPHERE_MASS);
             return { bridge, elapsed: 0 };

@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Stable Spherical Chain — port of PEEL's StableSphericalChain scene.
@@ -38,12 +38,14 @@ function build(physics: PhysicsState): ScenarioState {
     // Create spheres at (i*2, ALTITUDE, 0); sphere 0 is static
     const sphereIds: number[] = [];
     for (let i = 0; i < NB_SPHERES; i++) {
-        sphereIds.push(api.createRigidBody(physics, {
-            shape: sphereShapeId,
-            motionType: i === 0 ? MotionType.STATIC : MotionType.DYNAMIC,
-            position: [i * STEP, ALTITUDE, 0],
-            mass: 1,
-        }));
+        sphereIds.push(
+            api.createRigidBody(physics, {
+                shape: sphereShapeId,
+                motionType: i === 0 ? MotionType.STATIC : MotionType.DYNAMIC,
+                position: [i * STEP, ALTITUDE, 0],
+                mass: 1,
+            }),
+        );
     }
 
     const jointIds: number[] = [];
@@ -51,37 +53,36 @@ function build(physics: PhysicsState): ScenarioState {
 
     // Point joints between adjacent spheres; anchor at sphere[i] world pos
     for (let i = 0; i < NB_SPHERES - 1; i++) {
-        jointIds.push(api.createPointConstraint(
-            physics, sphereIds[i]!, sphereIds[i + 1]!,
-            [i * STEP, ALTITUDE, 0],
-        ));
+        jointIds.push(api.createPointConstraint(physics, sphereIds[i]!, sphereIds[i + 1]!, [i * STEP, ALTITUDE, 0]));
     }
 
     // Skip-one distance constraints (sphere[i] → sphere[i+2], max=4)
     for (let i = 0; i < NB_SPHERES - 2; i++) {
-        distIds.push(api.createDistanceConstraint(
-            physics, sphereIds[i]!, sphereIds[i + 2]!,
-            [i * STEP, ALTITUDE, 0],
-            [(i + 2) * STEP, ALTITUDE, 0],
-            undefined, STEP * 2,
-        ));
+        distIds.push(
+            api.createDistanceConstraint(
+                physics,
+                sphereIds[i]!,
+                sphereIds[i + 2]!,
+                [i * STEP, ALTITUDE, 0],
+                [(i + 2) * STEP, ALTITUDE, 0],
+                undefined,
+                STEP * 2,
+            ),
+        );
     }
 
     // Heavy box at end: center = (sphere[255].x + 1 + 10, ALTITUDE, 0) = (521, ALTITUDE, 0)
     // LocalPivot0=(1,0,0) on last sphere → world=(511, ALTITUDE, 0)
     // LocalPivot1=(-10,0,0) on box → world=(511, ALTITUDE, 0)
     const lastX = (NB_SPHERES - 1) * STEP; // 510
-    const boxX = lastX + 1 + 10;           // 521
+    const boxX = lastX + 1 + 10; // 521
     const boxId = api.createRigidBody(physics, {
         shape: boxShapeId,
         motionType: MotionType.DYNAMIC,
         position: [boxX, ALTITUDE, 0],
         mass: 100,
     });
-    jointIds.push(api.createPointConstraint(
-        physics, sphereIds[NB_SPHERES - 1]!, boxId,
-        [lastX + 1, ALTITUDE, 0],
-    ));
+    jointIds.push(api.createPointConstraint(physics, sphereIds[NB_SPHERES - 1]!, boxId, [lastX + 1, ALTITUDE, 0]));
 
     return { sphereIds, boxId, jointIds, distIds, sphereShapeId, boxShapeId };
 }

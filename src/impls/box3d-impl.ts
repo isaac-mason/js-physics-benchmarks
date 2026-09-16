@@ -1,11 +1,16 @@
+import type { Box3DModule, b3BodyId, b3WorldId, ContactTouchEvent, EventsBuffer } from 'box3d.js';
 import Box3D from 'box3d.js/inline';
-import type { Box3DModule, ContactTouchEvent, EventsBuffer, b3BodyId, b3WorldId } from 'box3d.js';
+import { quat } from 'mathcat';
 import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { Capability, MotionType, ShapeType } from '../api';
-import { quat } from 'mathcat';
 import { quatFromZToAxis, rotateByConjugate, worldToLocal } from './impl-helpers';
 
-export const capabilities: ReadonlySet<Capability> = new Set([Capability.Raycast, Capability.ContactListener, Capability.HingeLimits, Capability.ConvexHull]);
+export const capabilities: ReadonlySet<Capability> = new Set([
+    Capability.Raycast,
+    Capability.ContactListener,
+    Capability.HingeLimits,
+    Capability.ConvexHull,
+]);
 
 const Q_IDENTITY: Quat = [0, 0, 0, 1];
 
@@ -225,20 +230,28 @@ function getFilter(b3: Box3DModule) {
 
 function box3dTransforms(state: ImplState, bodyA: b3BodyId, bodyB: b3BodyId) {
     const b3 = state.b3;
-    const posA: Vec3 = [0, 0, 0], quatA: Quat = [0, 0, 0, 1];
-    const posB: Vec3 = [0, 0, 0], quatB: Quat = [0, 0, 0, 1];
-    b3.b3Body_GetPosition(posA, bodyA); b3.b3Body_GetRotation(quatA, bodyA);
-    b3.b3Body_GetPosition(posB, bodyB); b3.b3Body_GetRotation(quatB, bodyB);
+    const posA: Vec3 = [0, 0, 0],
+        quatA: Quat = [0, 0, 0, 1];
+    const posB: Vec3 = [0, 0, 0],
+        quatB: Quat = [0, 0, 0, 1];
+    b3.b3Body_GetPosition(posA, bodyA);
+    b3.b3Body_GetRotation(quatA, bodyA);
+    b3.b3Body_GetPosition(posB, bodyB);
+    b3.b3Body_GetRotation(quatB, bodyB);
     return { posA, quatA, posB, quatB };
 }
 
 export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: b3BodyId, bodyB: b3BodyId): any {
     const b3 = state.b3;
     const { posA, quatA, posB, quatB } = box3dTransforms(state, bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, posA, quatA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, posB, quatB);
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchor, posA, quatA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchor, posB, quatB);
     const def = b3.b3DefaultSphericalJointDef();
-    def.base.bodyIdA = bodyA; def.base.bodyIdB = bodyB; def.base.collideConnected = false;
+    def.base.bodyIdA = bodyA;
+    def.base.bodyIdB = bodyB;
+    def.base.collideConnected = false;
     def.base.localFrameA = { position: lA, quaternion: Q_IDENTITY };
     def.base.localFrameB = { position: lB, quaternion: Q_IDENTITY };
     return b3.b3CreateSphericalJoint(state.world, def);
@@ -247,14 +260,22 @@ export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: b3BodyId
 export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: b3BodyId, bodyB: b3BodyId): any {
     const b3 = state.b3;
     const { posA, quatA, posB, quatB } = box3dTransforms(state, bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchor, posA, quatA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchor, posB, quatB);
-    const axA: Vec3 = [0, 0, 0]; rotateByConjugate(axA, axis, quatA);
-    const axB: Vec3 = [0, 0, 0]; rotateByConjugate(axB, axis, quatB);
-    const fqA: Quat = [0, 0, 0, 1]; quatFromZToAxis(fqA, axA[0], axA[1], axA[2]);
-    const fqB: Quat = [0, 0, 0, 1]; quatFromZToAxis(fqB, axB[0], axB[1], axB[2]);
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchor, posA, quatA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchor, posB, quatB);
+    const axA: Vec3 = [0, 0, 0];
+    rotateByConjugate(axA, axis, quatA);
+    const axB: Vec3 = [0, 0, 0];
+    rotateByConjugate(axB, axis, quatB);
+    const fqA: Quat = [0, 0, 0, 1];
+    quatFromZToAxis(fqA, axA[0], axA[1], axA[2]);
+    const fqB: Quat = [0, 0, 0, 1];
+    quatFromZToAxis(fqB, axB[0], axB[1], axB[2]);
     const def = b3.b3DefaultRevoluteJointDef();
-    def.base.bodyIdA = bodyA; def.base.bodyIdB = bodyB; def.base.collideConnected = false;
+    def.base.bodyIdA = bodyA;
+    def.base.bodyIdB = bodyB;
+    def.base.collideConnected = false;
     def.base.localFrameA = { position: lA, quaternion: fqA };
     def.base.localFrameB = { position: lB, quaternion: fqB };
     return b3.b3CreateRevoluteJoint(state.world, def);
@@ -264,29 +285,50 @@ export function createFixedJoint(state: ImplState, bodyA: b3BodyId, bodyB: b3Bod
     const b3 = state.b3;
     const { posA, quatA, posB, quatB } = box3dTransforms(state, bodyA, bodyB);
     // frame2 = conjB * quatA so that quatB * frame2 = quatA (frames coincide in world)
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, posA, posB, quatB);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, posA, posB, quatB);
     const conjB: Quat = [-quatB[0], -quatB[1], -quatB[2], quatB[3]];
-    const relQ: Quat = [0, 0, 0, 1]; quat.multiply(relQ, conjB, quatA);
+    const relQ: Quat = [0, 0, 0, 1];
+    quat.multiply(relQ, conjB, quatA);
     const def = b3.b3DefaultWeldJointDef();
-    def.base.bodyIdA = bodyA; def.base.bodyIdB = bodyB; def.base.collideConnected = false;
+    def.base.bodyIdA = bodyA;
+    def.base.bodyIdB = bodyB;
+    def.base.collideConnected = false;
     def.base.localFrameA = { position: [0, 0, 0], quaternion: Q_IDENTITY };
     def.base.localFrameB = { position: lB, quaternion: relQ };
-    def.linearHertz = 0; def.angularHertz = 0; // hertz=0 → rigid
+    def.linearHertz = 0;
+    def.angularHertz = 0; // hertz=0 → rigid
     return b3.b3CreateWeldJoint(state.world, def);
 }
 
-export function createDistanceJoint(state: ImplState, anchorA: Vec3, anchorB: Vec3, minDistance: number | undefined, maxDistance: number | undefined, bodyA: b3BodyId, bodyB: b3BodyId): any {
+export function createDistanceJoint(
+    state: ImplState,
+    anchorA: Vec3,
+    anchorB: Vec3,
+    minDistance: number | undefined,
+    maxDistance: number | undefined,
+    bodyA: b3BodyId,
+    bodyB: b3BodyId,
+): any {
     const b3 = state.b3;
     const { posA, quatA, posB, quatB } = box3dTransforms(state, bodyA, bodyB);
-    const lA: Vec3 = [0, 0, 0]; worldToLocal(lA, anchorA, posA, quatA);
-    const lB: Vec3 = [0, 0, 0]; worldToLocal(lB, anchorB, posB, quatB);
-    const dx = anchorA[0] - anchorB[0], dy = anchorA[1] - anchorB[1], dz = anchorA[2] - anchorB[2];
+    const lA: Vec3 = [0, 0, 0];
+    worldToLocal(lA, anchorA, posA, quatA);
+    const lB: Vec3 = [0, 0, 0];
+    worldToLocal(lB, anchorB, posB, quatB);
+    const dx = anchorA[0] - anchorB[0],
+        dy = anchorA[1] - anchorB[1],
+        dz = anchorA[2] - anchorB[2];
     const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
     const def = b3.b3DefaultDistanceJointDef();
-    def.base.bodyIdA = bodyA; def.base.bodyIdB = bodyB; def.base.collideConnected = false;
+    def.base.bodyIdA = bodyA;
+    def.base.bodyIdB = bodyB;
+    def.base.collideConnected = false;
     def.base.localFrameA = { position: lA, quaternion: Q_IDENTITY };
     def.base.localFrameB = { position: lB, quaternion: Q_IDENTITY };
-    def.minLength = minDistance ?? 0; def.maxLength = maxDistance ?? d; def.enableLimit = true;
+    def.minLength = minDistance ?? 0;
+    def.maxLength = maxDistance ?? d;
+    def.enableLimit = true;
     return b3.b3CreateDistanceJoint(state.world, def);
 }
 
@@ -312,11 +354,7 @@ export function setHingeLimits(state: ImplState, handle: any, lower: number, upp
 }
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {
-    const scaledDir: Vec3 = [
-        direction[0] * maxDistance,
-        direction[1] * maxDistance,
-        direction[2] * maxDistance,
-    ];
+    const scaledDir: Vec3 = [direction[0] * maxDistance, direction[1] * maxDistance, direction[2] * maxDistance];
     const result = b3.b3World_CastRayClosest(state.world, origin, scaledDir, getFilter(b3));
     out.hit = result.hit;
     out.fraction = result.fraction;

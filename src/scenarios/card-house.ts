@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Quat } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Card House — port of box3d's "Card House" stacking sample. Thin cards lean
@@ -80,10 +80,10 @@ export const createCardHouseScenario = () =>
                         // Flat card rests on A-frame apex; its world half-height = CARD_THICKNESS
                         card(z + pairStep * 1.5, y + leanedHalfY + CARD_THICKNESS, qA2);
                     }
-                    card(z, y, qA1);   // \ leaning card
+                    card(z, y, qA1); // \ leaning card
                     z += pairStep;
-                    card(z, y, qA0);   // / leaning card
-                    z += pairStep;     // inter-pair gap equals intra-pair step
+                    card(z, y, qA0); // / leaning card
+                    z += pairStep; // inter-pair gap equals intra-pair step
                 }
                 // Next layer rests on top of flat cards (top = y + leanedHalfY + 2*CARD_THICKNESS)
                 y += 2 * leanedHalfY + 2 * CARD_THICKNESS;

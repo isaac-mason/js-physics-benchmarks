@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Quat, Vec3 } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Initial Penetration — faithful port of PEEL's "InitialPenetration"
@@ -50,7 +50,14 @@ export const createInitialPenetrationScenario = () =>
 
             const bodies: Body[] = [];
             const add = (shape: number, pos: Vec3, mass = 1): void => {
-                const id = api.createRigidBody(physics, { shape, motionType: MotionType.DYNAMIC, position: pos, mass, friction: 0.5, restitution: 0 });
+                const id = api.createRigidBody(physics, {
+                    shape,
+                    motionType: MotionType.DYNAMIC,
+                    position: pos,
+                    mass,
+                    friction: 0.5,
+                    restitution: 0,
+                });
                 bodies.push({ id, pos: [pos[0], pos[1], pos[2]], quat: [0, 0, 0, 1] });
             };
 

@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Restitution — faithful port of PEEL's "Restitution" (CATEGORY_BEHAVIOR).
@@ -50,7 +50,10 @@ export const createRestitutionScenario = () =>
             api.createRigidBody(physics, { shape: floor, motionType: MotionType.STATIC, position: [0, -0.5, 0] });
 
             // Platform: half-extents (BoxExtent/2, 0.5, BoxExtent) — a wide thin slab.
-            const platformShape = api.createShape(physics, { type: ShapeType.BOX, halfExtents: [BOX_EXTENT * 0.5, 0.5, BOX_EXTENT] });
+            const platformShape = api.createShape(physics, {
+                type: ShapeType.BOX,
+                halfExtents: [BOX_EXTENT * 0.5, 0.5, BOX_EXTENT],
+            });
             const sphereShape = api.createShape(physics, { type: ShapeType.SPHERE, radius: RADIUS });
 
             const spheres: { id: number; x: number }[] = [];

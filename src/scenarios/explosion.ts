@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState, Vec3 } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Explosion — port of box3d's "Explosion" benchmark. A field of cylinder pucks
@@ -117,7 +117,10 @@ export const createExplosionScenario = () =>
             api.createRigidBody(physics, { shape: wallZ, motionType: MotionType.STATIC, position: [-20, 1, 0] });
             api.createRigidBody(physics, { shape: wallZ, motionType: MotionType.STATIC, position: [20, 1, 0] });
 
-            const puckShapeId = api.createShape(physics, { type: ShapeType.CONVEX_HULL, points: makeCylinder(CYL_SIDES, CYL_RADIUS, CYL_HALF_H) });
+            const puckShapeId = api.createShape(physics, {
+                type: ShapeType.CONVEX_HULL,
+                points: makeCylinder(CYL_SIDES, CYL_RADIUS, CYL_HALF_H),
+            });
             const pucks = buildPucks(physics, puckShapeId, DEFAULT_N);
 
             return { pucks, puckShapeId, builtN: DEFAULT_N, elapsed: 0, firstDone: false };

@@ -16,40 +16,39 @@ import { createArchScenario } from './scenarios/arch';
 import { createBoxContainerScenario } from './scenarios/box-container';
 import { createCandyCupsScenario } from './scenarios/candy-cups';
 import { createCardHouseScenario } from './scenarios/card-house';
+import { createCatenaryBridgeScenario } from './scenarios/catenary-bridge';
 import { createContactListenersScenario } from './scenarios/contact-listeners';
-import { createDestructionScenario } from './scenarios/destruction';
-import { createExplosionScenario } from './scenarios/explosion';
-import { createFrictionRampScenario } from './scenarios/friction-ramp';
-import { createHighMassRatioScenario } from './scenarios/high-mass-ratio';
-import { createRestitutionScenario } from './scenarios/restitution';
 import { createConvexHullsScenario } from './scenarios/convex-hulls';
 import { createCubeHeapScenario } from './scenarios/cube-heap';
+import { createDestructionScenario } from './scenarios/destruction';
+import { createDistanceJointScenario } from './scenarios/distance-joint';
 import { createDominoesScenario } from './scenarios/dominoes';
+import { createExplosionScenario } from './scenarios/explosion';
+import { createFixedJointsTorusStressScenario } from './scenarios/fixed-joints-torus-stress';
+import { createFixedTorusScenario } from './scenarios/fixed-torus';
+import { createFrictionRampScenario } from './scenarios/friction-ramp';
+import { createHighMassRatioScenario } from './scenarios/high-mass-ratio';
+import { createHingeBridgeScenario } from './scenarios/hinge-bridge';
+import { createHingeJointChainScenario } from './scenarios/hinge-joint-chain';
 import { createInitialPenetrationScenario } from './scenarios/initial-penetration';
 import { createJengaScenario } from './scenarios/jenga';
+import { createLimitedHingeJointScenario } from './scenarios/limited-hinge-joint';
 import { createManyBoxStacksScenario } from './scenarios/many-box-stacks';
 import { createPyramidScenario } from './scenarios/pyramid';
-import { createRaycastsScenario } from './scenarios/raycasts';
 import { createRayCurtainScenario } from './scenarios/ray-curtain';
+import { createRaycastsScenario } from './scenarios/raycasts';
+import { createRestitutionScenario } from './scenarios/restitution';
 import { createSeaOfStaticBoxesScenario } from './scenarios/sea-of-static-boxes';
 import { createSleepingPileScenario } from './scenarios/sleeping-pile';
-import { createStackedSpheresScenario } from './scenarios/stacked-spheres';
-import { createTenThousandScenario } from './scenarios/ten-thousand';
-import { createTumblerScenario } from './scenarios/tumbler';
-import { createWindScenario } from './scenarios/wind';
-import { createStableStackingScenario } from './scenarios/stable-stacking';
-import { createHingeBridgeScenario } from './scenarios/hinge-bridge';
-
-import { createFixedTorusScenario } from './scenarios/fixed-torus';
-import { createHingeJointChainScenario } from './scenarios/hinge-joint-chain';
-import { createCatenaryBridgeScenario } from './scenarios/catenary-bridge';
 import { createSphericalJointNetScenario } from './scenarios/spherical-joint-net';
 import { createSphericalJointNet2Scenario } from './scenarios/spherical-joint-net2';
 import { createStableSphericalChainScenario } from './scenarios/stable-spherical-chain';
-import { createFixedJointsTorusStressScenario } from './scenarios/fixed-joints-torus-stress';
-import { createDistanceJointScenario } from './scenarios/distance-joint';
-import { createLimitedHingeJointScenario } from './scenarios/limited-hinge-joint';
+import { createStableStackingScenario } from './scenarios/stable-stacking';
+import { createStackedSpheresScenario } from './scenarios/stacked-spheres';
+import { createTenThousandScenario } from './scenarios/ten-thousand';
+import { createTumblerScenario } from './scenarios/tumbler';
 import type { Scenario } from './scenarios/types';
+import { createWindScenario } from './scenarios/wind';
 import { createStats } from './stats';
 
 const PHYSICS_DT = 1 / 60;
@@ -211,14 +210,14 @@ const engineLabelOf = (id: string): string => ENGINES.find((e) => e.id === id)?.
 
 // --- capability checking ---
 const ENGINE_CAPABILITIES: Record<string, ReadonlySet<Capability>> = {
-    ammo:     ammo.capabilities,
-    bounce:   bounce.capabilities,
-    box3d:    box3d.capabilities,
-    cannon:   cannon.capabilities,
+    ammo: ammo.capabilities,
+    bounce: bounce.capabilities,
+    box3d: box3d.capabilities,
+    cannon: cannon.capabilities,
     crashcat: crashcat.capabilities,
-    jolt:     jolt.capabilities,
-    meep:     meep.capabilities,
-    rapier:   rapier.capabilities,
+    jolt: jolt.capabilities,
+    meep: meep.capabilities,
+    rapier: rapier.capabilities,
 };
 
 function missingCapabilities(engineId: string, scenarioId: string): Capability[] {
@@ -235,7 +234,8 @@ function scenarioSupported(engineId: string, scenarioId: string): boolean {
 // --- unsupported overlay ---
 const unsupportedOverlay = document.createElement('div');
 unsupportedOverlay.id = 'unsupported-overlay';
-unsupportedOverlay.innerHTML = '<div class="unsupported-banner"><p class="unsupported-title"></p><p class="unsupported-missing"></p></div>';
+unsupportedOverlay.innerHTML =
+    '<div class="unsupported-banner"><p class="unsupported-title"></p><p class="unsupported-missing"></p></div>';
 document.body.appendChild(unsupportedOverlay);
 
 function showUnsupportedOverlay(engineId: string, scenarioId: string): void {
@@ -243,8 +243,7 @@ function showUnsupportedOverlay(engineId: string, scenarioId: string): void {
     const missing = missingCapabilities(engineId, scenarioId);
     unsupportedOverlay.querySelector<HTMLElement>('.unsupported-title')!.textContent =
         `'${entry.label}' is not supported by ${engineLabelOf(engineId)}`;
-    unsupportedOverlay.querySelector<HTMLElement>('.unsupported-missing')!.textContent =
-        `Missing: ${missing.join(', ')}`;
+    unsupportedOverlay.querySelector<HTMLElement>('.unsupported-missing')!.textContent = `Missing: ${missing.join(', ')}`;
     unsupportedOverlay.classList.add('visible');
 }
 
@@ -386,7 +385,7 @@ function teardownControls(): void {
 
 async function startEngine(name: string): Promise<void> {
     activeEngineName = name;
-    
+
     if (impl && physics) {
         if (activeScenario?.dispose && activeScenarioState) {
             activeScenario.dispose(activeScenarioState, physics, currentRenderer);
@@ -592,7 +591,16 @@ async function init(): Promise<void> {
     setActiveScenarioUI(scenario);
     setActiveEngineUI(engine);
 
-    await Promise.all([box3d.init(), crashcat.init(), rapier.init(), jolt.init(), cannon.init(), bounce.init(), meep.init(), ammo.init()]);
+    await Promise.all([
+        box3d.init(),
+        crashcat.init(),
+        rapier.init(),
+        jolt.init(),
+        cannon.init(),
+        bounce.init(),
+        meep.init(),
+        ammo.init(),
+    ]);
     refreshScenarioMenu(engine);
     await startEngine(engine);
 

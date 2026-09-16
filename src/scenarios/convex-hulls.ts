@@ -1,8 +1,8 @@
-import { createScenario } from './types';
-import { MotionType, ShapeType } from '../api';
-import * as api from '../api';
 import type { PhysicsState } from '../api';
+import * as api from '../api';
+import { MotionType, ShapeType } from '../api';
 import type { Renderer } from '../renderer';
+import { createScenario } from './types';
 
 // ---------------------------------------------------------------------------
 // Hull geometry generators
@@ -10,13 +10,7 @@ import type { Renderer } from '../renderer';
 
 /** Pyramid with a square base centred at the origin */
 function makePyramid(baseHalf: number, height: number): number[] {
-    return [
-        -baseHalf, 0,  baseHalf,
-         baseHalf, 0,  baseHalf,
-         baseHalf, 0, -baseHalf,
-        -baseHalf, 0, -baseHalf,
-                0, height, 0,
-    ];
+    return [-baseHalf, 0, baseHalf, baseHalf, 0, baseHalf, baseHalf, 0, -baseHalf, -baseHalf, 0, -baseHalf, 0, height, 0];
 }
 
 /** Regular prism with `sides` sides, given radius and half-height */
@@ -27,7 +21,7 @@ function makePrism(sides: number, radius: number, halfH: number): number[] {
         const x = Math.cos(a) * radius;
         const z = Math.sin(a) * radius;
         pts.push(x, -halfH, z);
-        pts.push(x,  halfH, z);
+        pts.push(x, halfH, z);
     }
     return pts;
 }
@@ -77,11 +71,7 @@ function spawnHull(physics: PhysicsState, shapeIds: number[], rngIndex: number):
     return api.createRigidBody(physics, {
         shape: shapeId,
         motionType: MotionType.DYNAMIC,
-        position: [
-            Math.cos(angle) * r,
-            SPAWN_HEIGHT,
-            Math.sin(angle) * r,
-        ],
+        position: [Math.cos(angle) * r, SPAWN_HEIGHT, Math.sin(angle) * r],
         mass: 1,
         friction: 0.5,
         restitution: 0.1,
@@ -114,7 +104,7 @@ export const createConvexHullsScenario = () => {
             // Register hull variants — engines compute the actual convex hull from the point cloud
             const shapeIds = [
                 api.createShape(physics, { type: ShapeType.CONVEX_HULL, points: makePyramid(0.4, 0.8) }),
-                api.createShape(physics, { type: ShapeType.CONVEX_HULL, points: makePrism(8, 0.4, 0.35) }),  // octagonal prism
+                api.createShape(physics, { type: ShapeType.CONVEX_HULL, points: makePrism(8, 0.4, 0.35) }), // octagonal prism
                 api.createShape(physics, { type: ShapeType.CONVEX_HULL, points: makePrism(5, 0.45, 0.3) }), // pentagonal prism
                 api.createShape(physics, { type: ShapeType.CONVEX_HULL, points: makeRandomHull(16, 1, 0.4) }),
                 api.createShape(physics, { type: ShapeType.CONVEX_HULL, points: makeRandomHull(16, 2, 0.4) }),
@@ -140,7 +130,12 @@ export const createConvexHullsScenario = () => {
             const handle = state.bodyHandles[state.index % state.bodyHandles.length]!;
             const angle = state.index * 2.399963;
             const r = Math.sqrt((state.index % 17) / 17) * SPAWN_AREA;
-            api.setBodyTranslationRotation(physics, handle, [Math.cos(angle) * r, SPAWN_HEIGHT, Math.sin(angle) * r], [0, 0, 0, 1]);
+            api.setBodyTranslationRotation(
+                physics,
+                handle,
+                [Math.cos(angle) * r, SPAWN_HEIGHT, Math.sin(angle) * r],
+                [0, 0, 0, 1],
+            );
             state.index = (state.index + 1) % state.bodyHandles.length;
         },
     });
