@@ -20,7 +20,7 @@
     "crashcat": "0.0.5",
     "jolt-physics": "1.0.1",
     "lil-gui": "^0.21.0",
-    "mathcat": "^0.0.13",
+    "mathcat": "^0.0.14",
     "three": "^0.186.0"
   },
   "devDependencies": {

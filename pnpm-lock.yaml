@@ -30,8 +30,8 @@ dependencies:
     specifier: ^0.21.0
     version: 0.21.0
   mathcat:
-    specifier: ^0.0.13
-    version: 0.0.13
+    specifier: ^0.0.14
+    version: 0.0.14
   three:
     specifier: ^0.186.0
     version: 0.186.0
@@ -1053,6 +1053,10 @@ packages:
 
   /mathcat@0.0.13:
     resolution: {integrity: sha512-d5KhlEP3p6/ACSGpgwSBPCiiubdVXYb95mkK/rfQd5DirqHjMTYpvX5AP3vZXiQGO4y9DomRgSjOYwXW3dhA+w==}
+    dev: false
+
+  /mathcat@0.0.14:
+    resolution: {integrity: sha512-70enjjLHu2xk/xQqrfhAU/kr1qcOxghPqgBHUDfWMZB+4x1Th/SoRbTVI9hiF0jfPLT/SJ46F098hm3k0fZ71w==}
     dev: false
 
   /meshoptimizer@1.1.1:
