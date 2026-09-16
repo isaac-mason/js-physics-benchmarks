@@ -1,9 +1,9 @@
 {
   "meta": {
-    "measuredAt": "2026-09-16T08:48:35.207Z",
+    "measuredAt": "2026-09-16T08:49:39.388Z",
     "versions": {
       "crashcat": "0.0.5",
-      "rapier": "0.19.3",
+      "rapier": "0.20.0",
       "jolt": "1.0.1",
       "cannon": "0.20.0",
       "bounce": "1.10.0",
@@ -42,17 +42,17 @@
     "rapier": {
       "name": "rapier",
       "js": {
-        "raw": 460546,
-        "minified": 133629,
-        "minifiedGzip": 22602
+        "raw": 522714,
+        "minified": 149910,
+        "minifiedGzip": 25713
       },
       "wasm": {
-        "total": 1622757,
-        "totalGzip": 605510,
+        "total": 2196730,
+        "totalGzip": 736670,
         "files": {
           "rapier_wasm3d_bg.wasm": {
-            "raw": 1622757,
-            "gzip": 605510
+            "raw": 2196730,
+            "gzip": 736670
           }
         }
       }
