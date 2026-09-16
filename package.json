@@ -13,7 +13,7 @@
   "packageManager": "pnpm@8.15.2+sha1.798034f615aa211c6c2ae00010cc20be5fc102ee",
   "dependencies": {
     "@dimforge/rapier3d-simd": "0.19.3",
-    "@perplexdotgg/bounce": "^1.8.1",
+    "@perplexdotgg/bounce": "^1.10.0",
     "@woosh/meep-engine": "^2.165.0",
     "box3d.js": "^0.1.1",
     "cannon-es": "0.20.0",

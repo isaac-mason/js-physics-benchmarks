@@ -1,4 +1,4 @@
-import { type Body, Vec3 as BounceVec3, type CastResult, type Constraint, Ray, World } from '@perplexdotgg/bounce';
+import { type Body, Vec3 as BounceVec3, type Constraint, Ray, type RaycastResult as BounceRaycastResult, World } from '@perplexdotgg/bounce';
 import { vec3 } from 'mathcat';
 import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { Capability, MotionType, ShapeType } from '../api';
@@ -182,7 +182,7 @@ const _raycastClosest_ray = Ray.create({
 });
 let _raycastClosest_out: RaycastResult | null = null;
 
-function _raycastClosest_cb(result: CastResult): undefined {
+function _raycastClosest_cb(result: BounceRaycastResult): undefined {
     _raycastClosest_out!.hit = true;
     _raycastClosest_out!.fraction = result.fraction;
 }

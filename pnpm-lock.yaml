@@ -9,8 +9,8 @@ dependencies:
     specifier: 0.19.3
     version: 0.19.3
   '@perplexdotgg/bounce':
-    specifier: ^1.8.1
-    version: 1.8.1
+    specifier: ^1.10.0
+    version: 1.10.0
   '@woosh/meep-engine':
     specifier: ^2.165.0
     version: 2.165.0(three@0.186.0)
@@ -435,8 +435,8 @@ packages:
       '@jridgewell/sourcemap-codec': 1.5.5
     dev: true
 
-  /@perplexdotgg/bounce@1.8.1:
-    resolution: {integrity: sha512-/a5brlrveYoxYaB+OfZJgrGAFMAMu82DVPWQOk6YIlIEQB8ZMyrLyjkO1C5IRROdnSy7XNB6NBU1HhWOGK5F1Q==}
+  /@perplexdotgg/bounce@1.10.0:
+    resolution: {integrity: sha512-4cA07y6j6LUizuAYJ3fof0CZxRVIpYhDWaY8JXoPRG4d+KcetxZ5p6F/XJSAAEV2ANKsqvovg76gXuUQDx0B0A==}
     dependencies:
       monomorph: 2.3.1
     dev: false

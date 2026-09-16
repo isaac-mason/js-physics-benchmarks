@@ -1,12 +1,12 @@
 {
   "meta": {
-    "measuredAt": "2026-09-16T08:37:41.604Z",
+    "measuredAt": "2026-09-16T08:48:35.207Z",
     "versions": {
       "crashcat": "0.0.5",
       "rapier": "0.19.3",
       "jolt": "1.0.1",
       "cannon": "0.20.0",
-      "bounce": "1.8.1",
+      "bounce": "1.10.0",
       "meep": "2.165.0",
       "box3d": "0.1.1",
       "ammo": "7dec46e"
@@ -86,9 +86,9 @@
     "bounce": {
       "name": "bounce",
       "js": {
-        "raw": 621069,
-        "minified": 312348,
-        "minifiedGzip": 72021
+        "raw": 621151,
+        "minified": 313123,
+        "minifiedGzip": 72201
       }
     },
     "meep": {
