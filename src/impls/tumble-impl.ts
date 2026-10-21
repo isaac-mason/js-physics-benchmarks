@@ -1,35 +1,32 @@
 // tumble: crashcat's design in C++, compiled to wasm, through its js package. `tumble` and `tumble-binary` are the
 // sibling checkout's built js/dist (vite.config.ts), so a run benches whatever was last built there
+
+import tumbleWasmUrl from 'tumble-binary?url';
 import { vec3 } from 'mathcat';
 import {
     type BodyId,
     Box,
-    CastRayStatus,
     type CastRaySettings,
-    type ClosestCastRayCollector,
-    castRay,
+    CastRayStatus,
     ConvexHull,
-    ConvexHullData,
+    castRay,
     createClosestCastRayCollector,
     createDefaultCastRaySettings,
     DistanceConstraint,
-    Filter,
     FixedConstraint,
     HingeConstraint,
     init as initTumble,
     type Listener,
-    MotionType as TumbleMotionType,
     MotorState,
     PointConstraint,
     RigidBody,
-    type Shape,
+    Shape,
     Sphere,
     TriangleMesh,
-    TriangleMeshData,
+    MotionType as TumbleMotionType,
     World,
     WorldSettings,
 } from 'tumble';
-import tumbleWasmUrl from 'tumble-binary?url';
 import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { Capability, JointType, MotionType, ShapeType } from '../api';
 
@@ -45,30 +42,23 @@ const CONVEX_RADIUS = 0.05;
 
 type TumbleBody = { id: BodyId };
 
-type TumbleShape =
-    | { type: ShapeType.BOX | ShapeType.SPHERE; shape: Shape }
-    | { type: ShapeType.CONVEX_HULL; shape: Shape; data: ConvexHullData }
-    | { type: ShapeType.TRIANGLE_MESH; shape: Shape; data: TriangleMeshData };
-
 type TumbleJoint = { type: JointType; id: number };
 
 type ImplState = {
     world: World;
     moving: number;
     notMoving: number;
-    filter: Filter;
     /** by id, for the contact listener */
     bodies: Map<BodyId, TumbleBody>;
     listener: Listener | undefined;
 };
 
-// made once the wasm is up, as their defaults are the wasm's
-let closest: ClosestCastRayCollector;
+const closest = createClosestCastRayCollector();
+// made once the wasm is up, as its defaults are the wasm's
 let raySettings: CastRaySettings;
 
 export async function init(): Promise<void> {
     await initTumble({ wasm: tumbleWasmUrl });
-    closest = createClosestCastRayCollector();
     raySettings = createDefaultCastRaySettings();
 }
 
@@ -79,11 +69,10 @@ export function createWorld(): ImplState {
     WorldSettings.enableCollision(settings, moving, moving);
     WorldSettings.enableCollision(settings, moving, notMoving);
     const world = World.create(settings);
-    return { world, moving, notMoving, filter: Filter.create(world), bodies: new Map(), listener: undefined };
+    return { world, moving, notMoving, bodies: new Map(), listener: undefined };
 }
 
 export function disposeWorld(state: ImplState): void {
-    Filter.destroy(state.filter);
     World.destroy(state.world);
 }
 
@@ -109,40 +98,21 @@ export function disposeContactListener(state: ImplState): void {
     state.listener = undefined;
 }
 
-export function createShape(_state: ImplState, desc: PhysicsShape): TumbleShape {
+export function createShape(_state: ImplState, desc: PhysicsShape): Shape {
     switch (desc.type) {
         case ShapeType.BOX:
-            return { type: desc.type, shape: Box.create({ halfExtents: desc.halfExtents, convexRadius: desc.convexRadius ?? CONVEX_RADIUS }) };
+            return Box.create({ halfExtents: desc.halfExtents, convexRadius: desc.convexRadius ?? CONVEX_RADIUS });
         case ShapeType.SPHERE:
-            return { type: desc.type, shape: Sphere.create({ radius: desc.radius }) };
-        case ShapeType.CONVEX_HULL: {
-            const data = ConvexHullData.build({ positions: desc.points, convexRadius: CONVEX_RADIUS });
-            return { type: desc.type, shape: ConvexHull.create({ data }), data };
-        }
-        case ShapeType.TRIANGLE_MESH: {
-            const data = TriangleMeshData.build({ positions: desc.positions, indices: desc.indices });
-            return { type: desc.type, shape: TriangleMesh.create({ data }), data };
-        }
+            return Sphere.create({ radius: desc.radius });
+        case ShapeType.CONVEX_HULL:
+            return ConvexHull.create({ positions: desc.points, convexRadius: CONVEX_RADIUS });
+        case ShapeType.TRIANGLE_MESH:
+            return TriangleMesh.create({ positions: desc.positions, indices: desc.indices });
     }
 }
 
-export function destroyShape(_state: ImplState, handle: TumbleShape): void {
-    switch (handle.type) {
-        case ShapeType.BOX:
-            Box.destroy(handle.shape);
-            break;
-        case ShapeType.SPHERE:
-            Sphere.destroy(handle.shape);
-            break;
-        case ShapeType.CONVEX_HULL:
-            ConvexHull.destroy(handle.shape);
-            ConvexHullData.release(handle.data);
-            break;
-        case ShapeType.TRIANGLE_MESH:
-            TriangleMesh.destroy(handle.shape);
-            TriangleMeshData.release(handle.data);
-            break;
-    }
+export function destroyShape(_state: ImplState, shape: Shape): void {
+    Shape.destroy(shape);
 }
 
 function motionTypeOf(motionType: MotionType): TumbleMotionType {
@@ -156,9 +126,9 @@ function motionTypeOf(motionType: MotionType): TumbleMotionType {
     }
 }
 
-export function createRigidBody(state: ImplState, options: RigidBodyOptions, shape: TumbleShape): TumbleBody {
+export function createRigidBody(state: ImplState, options: RigidBodyOptions, shape: Shape): TumbleBody {
     const id = RigidBody.create(state.world, {
-        shape: shape.shape,
+        shape,
         objectLayer: options.motionType === MotionType.STATIC ? state.notMoving : state.moving,
         motionType: motionTypeOf(options.motionType),
         position: options.position,
@@ -211,13 +181,16 @@ export function setBodyTranslationRotation(state: ImplState, body: TumbleBody, p
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {
     closest.reset();
-    castRay(state.world, closest, raySettings, origin, direction, maxDistance, state.filter);
+    castRay(state.world, closest, raySettings, origin, direction, maxDistance);
     out.hit = closest.hit.status === CastRayStatus.COLLIDING;
     out.fraction = out.hit ? closest.hit.fraction : 0;
 }
 
 export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: TumbleBody, bodyB: TumbleBody): TumbleJoint {
-    return { type: JointType.POINT, id: PointConstraint.create(state.world, bodyA.id, bodyB.id, { pointA: anchor, pointB: anchor }) };
+    return {
+        type: JointType.POINT,
+        id: PointConstraint.create(state.world, bodyA.id, bodyB.id, { pointA: anchor, pointB: anchor }),
+    };
 }
 
 export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: TumbleBody, bodyB: TumbleBody): TumbleJoint {
