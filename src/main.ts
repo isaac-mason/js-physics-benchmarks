@@ -11,6 +11,7 @@ import type { PhysicsImpl } from './impls/impl';
 import * as jolt from './impls/jolt-impl';
 import * as meep from './impls/meep-impl';
 import * as rapier from './impls/rapier-impl';
+import * as tumble from './impls/tumble-impl';
 import { createRenderer } from './renderer';
 import { createArchScenario } from './scenarios/arch';
 import { createBoxContainerScenario } from './scenarios/box-container';
@@ -69,6 +70,7 @@ const ENGINES = [
     { id: 'box3d',    label: 'box3d.js',  tag: 'wasm', repoUrl: 'https://github.com/isaac-mason/box3d.js' },
     { id: 'rapier',   label: 'rapier',    tag: 'wasm', repoUrl: 'https://github.com/dimforge/rapier.js' },
     { id: 'jolt',     label: 'jolt',      tag: 'wasm', repoUrl: 'https://github.com/jrouwe/JoltPhysics.js' },
+    { id: 'tumble',   label: 'tumble',    tag: 'wasm', repoUrl: 'https://github.com/isaac-mason/tumble' },
     { id: 'ammo',     label: 'ammo.js',   tag: 'wasm', repoUrl: 'https://github.com/kripken/ammo.js' },
 ]
 
@@ -218,6 +220,7 @@ const ENGINE_CAPABILITIES: Record<string, ReadonlySet<Capability>> = {
     jolt: jolt.capabilities,
     meep: meep.capabilities,
     rapier: rapier.capabilities,
+    tumble: tumble.capabilities,
 };
 
 function missingCapabilities(engineId: string, scenarioId: string): Capability[] {
@@ -398,6 +401,8 @@ async function startEngine(name: string): Promise<void> {
         impl = box3d;
     } else if (name === 'crashcat') {
         impl = crashcat;
+    } else if (name === 'tumble') {
+        impl = tumble;
     } else if (name === 'rapier') {
         impl = rapier;
     } else if (name === 'jolt') {
@@ -594,6 +599,7 @@ async function init(): Promise<void> {
     await Promise.all([
         box3d.init(),
         crashcat.init(),
+        tumble.init(),
         rapier.init(),
         jolt.init(),
         cannon.init(),

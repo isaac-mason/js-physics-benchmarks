@@ -1,6 +1,6 @@
 {
   "meta": {
-    "measuredAt": "2026-09-16T09:03:41.702Z",
+    "measuredAt": "2026-10-21T04:19:55.300Z",
     "versions": {
       "crashcat": "0.0.5",
       "rapier": "0.20.0",
@@ -9,7 +9,8 @@
       "bounce": "1.10.0",
       "meep": "3.28.0",
       "box3d": "0.1.1",
-      "ammo": "7dec46e"
+      "ammo": "7dec46e",
+      "tumble": "0.0.0"
     }
   },
   "results": {
@@ -71,6 +72,24 @@
           "jolt-physics.st-simd.wasm.wasm": {
             "raw": 2435140,
             "gzip": 716740
+          }
+        }
+      }
+    },
+    "tumble": {
+      "name": "tumble",
+      "js": {
+        "raw": 118430,
+        "minified": 56437,
+        "minifiedGzip": 11283
+      },
+      "wasm": {
+        "total": 544732,
+        "totalGzip": 164994,
+        "files": {
+          "tumble.wasm": {
+            "raw": 544732,
+            "gzip": 164994
           }
         }
       }
