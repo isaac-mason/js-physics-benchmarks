@@ -26,8 +26,6 @@ import { createRequire } from 'module'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
 const outDir = path.join(__dirname, 'out')
-// tumble's js package as built in the sibling checkout, as vite.config.ts resolves it
-const TUMBLE_DIR = path.resolve(root, process.env.TUMBLE_DIR ?? '../tumble')
 
 // ---------------------------------------------------------------------------
 // Engine definitions
@@ -65,7 +63,7 @@ const ENGINES = [
     name: 'tumble',
     entry: 'entries/tumble.ts',
     wasm: [
-      path.relative(root, path.join(TUMBLE_DIR, 'js/dist/tumble.wasm')),
+      'node_modules/tumble.js/dist/tumble.wasm',
     ],
   },
   {
@@ -132,10 +130,6 @@ async function measureEntry(engine) {
       // Treat Node built-ins and .wasm files as external
       external: (id) => ['fs', 'path', 'module'].includes(id) || id.endsWith('.wasm'),
       plugins: [
-        {
-          name: 'tumble-checkout',
-          resolveId: (id) => (id === 'tumble' ? path.join(TUMBLE_DIR, 'js/dist/index.js') : null),
-        },
         // Resolve node_modules
         resolve({
           browser: true,
@@ -265,7 +259,7 @@ async function main() {
     box3d: versionFor('box3d.js'),
     // local SIMD build; commit pinned in scripts/build-ammo-simd.sh
     ammo: '7dec46e',
-    tumble: JSON.parse(readFileSync(path.join(TUMBLE_DIR, 'js/package.json'), 'utf8')).version,
+    tumble: versionFor('tumble.js'),
   }
 
   for (const engine of ENGINES) {

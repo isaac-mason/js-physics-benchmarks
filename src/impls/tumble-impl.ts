@@ -1,32 +1,41 @@
-// tumble: crashcat's design in C++, compiled to wasm, through its js package. `tumble` and `tumble-binary` are the
-// sibling checkout's built js/dist (vite.config.ts), so a run benches whatever was last built there
+// tumble: crashcat's design in C++, compiled to wasm, through its js package (tumble.js)
 
-import tumbleWasmUrl from 'tumble-binary?url';
+import tumbleWasmUrl from 'tumble.js/tumble.wasm?url';
 import { vec3 } from 'mathcat';
 import {
+    addBroadphaseLayer,
+    addObjectLayer,
     type BodyId,
-    Box,
+    box,
     type CastRaySettings,
     CastRayStatus,
-    ConvexHull,
+    type ConstraintId,
     castRay,
+    constraints,
+    convexHull,
     createClosestCastRayCollector,
     createDefaultCastRaySettings,
-    DistanceConstraint,
-    FixedConstraint,
-    HingeConstraint,
+    createWorld as createTumbleWorld,
+    createWorldSettings,
+    destroyWorld,
+    distanceConstraint,
+    enableCollision,
+    fixedConstraint,
+    hingeConstraint,
     init as initTumble,
     type Listener,
     MotorState,
-    PointConstraint,
-    RigidBody,
-    Shape,
-    Sphere,
-    TriangleMesh,
+    pointConstraint,
+    releaseShape,
+    rigidBody,
+    type Shape,
+    setGravity as setTumbleGravity,
+    sphere,
     MotionType as TumbleMotionType,
-    World,
-    WorldSettings,
-} from 'tumble';
+    triangleMesh,
+    updateWorld,
+    type World,
+} from 'tumble.js';
 import type { HingeMotorDesc, PhysicsShape, Quat, RaycastResult, RigidBodyOptions, Vec3 } from '../api';
 import { Capability, JointType, MotionType, ShapeType } from '../api';
 
@@ -42,7 +51,7 @@ const CONVEX_RADIUS = 0.05;
 
 type TumbleBody = { id: BodyId };
 
-type TumbleJoint = { type: JointType; id: number };
+type TumbleJoint = { type: JointType; id: ConstraintId };
 
 type ImplState = {
     world: World;
@@ -63,25 +72,25 @@ export async function init(): Promise<void> {
 }
 
 export function createWorld(): ImplState {
-    const settings = WorldSettings.create();
-    const moving = WorldSettings.addObjectLayer(settings, WorldSettings.addBroadphaseLayer(settings));
-    const notMoving = WorldSettings.addObjectLayer(settings, WorldSettings.addBroadphaseLayer(settings));
-    WorldSettings.enableCollision(settings, moving, moving);
-    WorldSettings.enableCollision(settings, moving, notMoving);
-    const world = World.create(settings);
+    const settings = createWorldSettings();
+    const moving = addObjectLayer(settings, addBroadphaseLayer(settings));
+    const notMoving = addObjectLayer(settings, addBroadphaseLayer(settings));
+    enableCollision(settings, moving, moving);
+    enableCollision(settings, moving, notMoving);
+    const world = createTumbleWorld(settings);
     return { world, moving, notMoving, bodies: new Map(), listener: undefined };
 }
 
 export function disposeWorld(state: ImplState): void {
-    World.destroy(state.world);
+    destroyWorld(state.world);
 }
 
 export function setGravity(state: ImplState, x: number, y: number, z: number): void {
-    World.setGravity(state.world, [x, y, z]);
+    setTumbleGravity(state.world, [x, y, z]);
 }
 
 export function stepSimulation(state: ImplState, dt: number): void {
-    World.step(state.world, state.listener, dt);
+    updateWorld(state.world, state.listener, dt);
 }
 
 export function onContactAdded(state: ImplState, onContact: (bodyA: TumbleBody, bodyB: TumbleBody) => void): void {
@@ -101,18 +110,18 @@ export function disposeContactListener(state: ImplState): void {
 export function createShape(_state: ImplState, desc: PhysicsShape): Shape {
     switch (desc.type) {
         case ShapeType.BOX:
-            return Box.create({ halfExtents: desc.halfExtents, convexRadius: desc.convexRadius ?? CONVEX_RADIUS });
+            return box.create({ halfExtents: desc.halfExtents, convexRadius: desc.convexRadius ?? CONVEX_RADIUS });
         case ShapeType.SPHERE:
-            return Sphere.create({ radius: desc.radius });
+            return sphere.create({ radius: desc.radius });
         case ShapeType.CONVEX_HULL:
-            return ConvexHull.create({ positions: desc.points, convexRadius: CONVEX_RADIUS });
+            return convexHull.create({ positions: desc.points, convexRadius: CONVEX_RADIUS });
         case ShapeType.TRIANGLE_MESH:
-            return TriangleMesh.create({ positions: desc.positions, indices: desc.indices });
+            return triangleMesh.create({ positions: desc.positions, indices: desc.indices });
     }
 }
 
 export function destroyShape(_state: ImplState, shape: Shape): void {
-    Shape.destroy(shape);
+    releaseShape(shape);
 }
 
 function motionTypeOf(motionType: MotionType): TumbleMotionType {
@@ -127,7 +136,7 @@ function motionTypeOf(motionType: MotionType): TumbleMotionType {
 }
 
 export function createRigidBody(state: ImplState, options: RigidBodyOptions, shape: Shape): TumbleBody {
-    const id = RigidBody.create(state.world, {
+    const id = rigidBody.create(state.world, {
         shape,
         objectLayer: options.motionType === MotionType.STATIC ? state.notMoving : state.moving,
         motionType: motionTypeOf(options.motionType),
@@ -143,40 +152,40 @@ export function createRigidBody(state: ImplState, options: RigidBodyOptions, sha
 }
 
 export function removeRigidBody(state: ImplState, body: TumbleBody): void {
-    RigidBody.remove(state.world, body.id);
+    rigidBody.remove(state.world, body.id);
     state.bodies.delete(body.id);
 }
 
 export function getBodyPosition(out: Vec3, state: ImplState, body: TumbleBody): void {
-    RigidBody.getPosition(out, state.world, body.id);
+    rigidBody.getPosition(out, state.world, body.id);
 }
 
 export function getBodyQuaternion(out: Quat, state: ImplState, body: TumbleBody): void {
-    RigidBody.getQuaternion(out, state.world, body.id);
+    rigidBody.getQuaternion(out, state.world, body.id);
 }
 
 export function setBodyPosition(state: ImplState, body: TumbleBody, position: Vec3): void {
-    RigidBody.setPosition(state.world, body.id, position, true);
+    rigidBody.setPosition(state.world, body.id, position, true);
 }
 
 export function setBodyQuaternion(state: ImplState, body: TumbleBody, quaternion: Quat): void {
-    RigidBody.setQuaternion(state.world, body.id, quaternion, true);
+    rigidBody.setQuaternion(state.world, body.id, quaternion, true);
 }
 
 export function setBodyLinearVelocity(state: ImplState, body: TumbleBody, velocity: Vec3): void {
-    RigidBody.setLinearVelocity(state.world, body.id, velocity);
+    rigidBody.setLinearVelocity(state.world, body.id, velocity);
 }
 
 export function getBodyLinearVelocity(out: Vec3, state: ImplState, body: TumbleBody): void {
-    RigidBody.getLinearVelocity(out, state.world, body.id);
+    rigidBody.getLinearVelocity(out, state.world, body.id);
 }
 
 export function applyImpulse(state: ImplState, body: TumbleBody, impulse: Vec3): void {
-    RigidBody.addImpulse(state.world, body.id, impulse);
+    rigidBody.addImpulse(state.world, body.id, impulse);
 }
 
 export function setBodyTranslationRotation(state: ImplState, body: TumbleBody, position: Vec3, quaternion: Quat): void {
-    RigidBody.setTransform(state.world, body.id, position, quaternion, true);
+    rigidBody.setTransform(state.world, body.id, position, quaternion, true);
 }
 
 export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec3, direction: Vec3, maxDistance: number): void {
@@ -189,14 +198,14 @@ export function raycastClosest(out: RaycastResult, state: ImplState, origin: Vec
 export function createPointJoint(state: ImplState, anchor: Vec3, bodyA: TumbleBody, bodyB: TumbleBody): TumbleJoint {
     return {
         type: JointType.POINT,
-        id: PointConstraint.create(state.world, bodyA.id, bodyB.id, { pointA: anchor, pointB: anchor }),
+        id: pointConstraint.create(state.world, bodyA.id, bodyB.id, { pointA: anchor, pointB: anchor }),
     };
 }
 
 export function createHingeJoint(state: ImplState, anchor: Vec3, axis: Vec3, bodyA: TumbleBody, bodyB: TumbleBody): TumbleJoint {
     const normal: Vec3 = [0, 0, 0];
     vec3.perpendicular(normal, axis);
-    const id = HingeConstraint.create(state.world, bodyA.id, bodyB.id, {
+    const id = hingeConstraint.create(state.world, bodyA.id, bodyB.id, {
         pointA: anchor,
         pointB: anchor,
         hingeAxisA: axis,
@@ -211,8 +220,8 @@ const at: Vec3 = [0, 0, 0];
 
 export function createFixedJoint(state: ImplState, bodyA: TumbleBody, bodyB: TumbleBody): TumbleJoint {
     // at body a, as the crashcat impl joins them
-    RigidBody.getPosition(at, state.world, bodyA.id);
-    return { type: JointType.FIXED, id: FixedConstraint.create(state.world, bodyA.id, bodyB.id, { pointA: at, pointB: at }) };
+    rigidBody.getPosition(at, state.world, bodyA.id);
+    return { type: JointType.FIXED, id: fixedConstraint.create(state.world, bodyA.id, bodyB.id, { pointA: at, pointB: at }) };
 }
 
 export function createDistanceJoint(
@@ -224,7 +233,7 @@ export function createDistanceJoint(
     bodyA: TumbleBody,
     bodyB: TumbleBody,
 ): TumbleJoint {
-    const id = DistanceConstraint.create(state.world, bodyA.id, bodyB.id, {
+    const id = distanceConstraint.create(state.world, bodyA.id, bodyB.id, {
         pointA: anchorA,
         pointB: anchorB,
         minDistance: minDistance ?? -1,
@@ -234,34 +243,21 @@ export function createDistanceJoint(
 }
 
 export function removeJoint(state: ImplState, joint: TumbleJoint): void {
-    switch (joint.type) {
-        case JointType.POINT:
-            PointConstraint.remove(state.world, joint.id);
-            break;
-        case JointType.HINGE:
-            HingeConstraint.remove(state.world, joint.id);
-            break;
-        case JointType.FIXED:
-            FixedConstraint.remove(state.world, joint.id);
-            break;
-        case JointType.DISTANCE:
-            DistanceConstraint.remove(state.world, joint.id);
-            break;
-    }
+    constraints.remove(state.world, joint.id);
 }
 
 export function setHingeMotor(state: ImplState, joint: TumbleJoint, desc: HingeMotorDesc): void {
     if (joint.type !== JointType.HINGE) return;
     if (desc.mode === 'off') {
-        HingeConstraint.setMotorState(state.world, joint.id, MotorState.OFF);
+        hingeConstraint.setMotorState(state.world, joint.id, MotorState.OFF);
         return;
     }
-    HingeConstraint.setMotorSettings(state.world, joint.id, { minTorqueLimit: -desc.maxTorque, maxTorqueLimit: desc.maxTorque });
-    HingeConstraint.setMotorState(state.world, joint.id, MotorState.VELOCITY);
-    HingeConstraint.setTargetAngularVelocity(state.world, joint.id, desc.speed);
+    hingeConstraint.setMotorSettings(state.world, joint.id, { minTorqueLimit: -desc.maxTorque, maxTorqueLimit: desc.maxTorque });
+    hingeConstraint.setMotorState(state.world, joint.id, MotorState.VELOCITY);
+    hingeConstraint.setTargetAngularVelocity(state.world, joint.id, desc.speed);
 }
 
 export function setHingeLimits(state: ImplState, joint: TumbleJoint, lower: number, upper: number): void {
     if (joint.type !== JointType.HINGE) return;
-    HingeConstraint.setLimits(state.world, joint.id, lower, upper);
+    hingeConstraint.setLimits(state.world, joint.id, lower, upper);
 }

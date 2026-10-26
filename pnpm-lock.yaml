@@ -35,6 +35,9 @@ dependencies:
   three:
     specifier: ^0.186.0
     version: 0.186.0
+  tumble.js:
+    specifier: 0.0.0-canary-20261026-8fb7ed2c
+    version: 0.0.0-canary-20261026-8fb7ed2c
 
 devDependencies:
   '@biomejs/biome':
@@ -1204,6 +1207,10 @@ packages:
   /tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
     dev: true
+
+  /tumble.js@0.0.0-canary-20261026-8fb7ed2c:
+    resolution: {integrity: sha512-rNkgypbcDtcUN0gOIDx6JuoQWSI6PSD9kNq2NyjGMf+6VLzD6DzeJa7QYlRjX8aKn+rk1dOSUdjlU2Oan4i7Zw==}
+    dev: false
 
   /typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}

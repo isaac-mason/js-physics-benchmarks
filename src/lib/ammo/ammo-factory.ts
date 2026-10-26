@@ -12,8 +12,10 @@ export function getAmmoFactory(): (opts: object) => Promise<unknown> {
     // Execute the IIFE in a scope where `module` and `exports` are defined,
     // so the CJS tail (`module.exports = Ammo`) deposits the factory there.
     const mod = { exports: {} as Record<string, unknown> };
+    // under node (the headless run) the glue reads its wasm with require('node:fs'); the browser never calls it
+    const require = (id: string) => (globalThis as any).process?.getBuiltinModule?.(id);
     // eslint-disable-next-line no-new-func
-    new Function('module', 'exports', ammoScript)(mod, mod.exports);
+    new Function('module', 'exports', 'require', ammoScript)(mod, mod.exports, require);
 
     const result = (mod.exports as Record<string, unknown>).default ?? mod.exports;
     if (typeof result !== 'function') {

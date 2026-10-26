@@ -13,43 +13,8 @@ import * as meep from './impls/meep-impl';
 import * as rapier from './impls/rapier-impl';
 import * as tumble from './impls/tumble-impl';
 import { createRenderer } from './renderer';
-import { createArchScenario } from './scenarios/arch';
-import { createBoxContainerScenario } from './scenarios/box-container';
-import { createCandyCupsScenario } from './scenarios/candy-cups';
-import { createCardHouseScenario } from './scenarios/card-house';
-import { createCatenaryBridgeScenario } from './scenarios/catenary-bridge';
-import { createContactListenersScenario } from './scenarios/contact-listeners';
-import { createConvexHullsScenario } from './scenarios/convex-hulls';
-import { createCubeHeapScenario } from './scenarios/cube-heap';
-import { createDestructionScenario } from './scenarios/destruction';
-import { createDistanceJointScenario } from './scenarios/distance-joint';
-import { createDominoesScenario } from './scenarios/dominoes';
-import { createExplosionScenario } from './scenarios/explosion';
-import { createFixedJointsTorusStressScenario } from './scenarios/fixed-joints-torus-stress';
-import { createFixedTorusScenario } from './scenarios/fixed-torus';
-import { createFrictionRampScenario } from './scenarios/friction-ramp';
-import { createHighMassRatioScenario } from './scenarios/high-mass-ratio';
-import { createHingeBridgeScenario } from './scenarios/hinge-bridge';
-import { createHingeJointChainScenario } from './scenarios/hinge-joint-chain';
-import { createInitialPenetrationScenario } from './scenarios/initial-penetration';
-import { createJengaScenario } from './scenarios/jenga';
-import { createLimitedHingeJointScenario } from './scenarios/limited-hinge-joint';
-import { createManyBoxStacksScenario } from './scenarios/many-box-stacks';
-import { createPyramidScenario } from './scenarios/pyramid';
-import { createRayCurtainScenario } from './scenarios/ray-curtain';
-import { createRaycastsScenario } from './scenarios/raycasts';
-import { createRestitutionScenario } from './scenarios/restitution';
-import { createSeaOfStaticBoxesScenario } from './scenarios/sea-of-static-boxes';
-import { createSleepingPileScenario } from './scenarios/sleeping-pile';
-import { createSphericalJointNetScenario } from './scenarios/spherical-joint-net';
-import { createSphericalJointNet2Scenario } from './scenarios/spherical-joint-net2';
-import { createStableSphericalChainScenario } from './scenarios/stable-spherical-chain';
-import { createStableStackingScenario } from './scenarios/stable-stacking';
-import { createStackedSpheresScenario } from './scenarios/stacked-spheres';
-import { createTenThousandScenario } from './scenarios/ten-thousand';
-import { createTumblerScenario } from './scenarios/tumbler';
+import { SCENARIOS } from './scenarios/registry';
 import type { Scenario } from './scenarios/types';
-import { createWindScenario } from './scenarios/wind';
 import { createStats } from './stats';
 
 const PHYSICS_DT = 1 / 60;
@@ -72,52 +37,6 @@ const ENGINES = [
     { id: 'jolt',     label: 'jolt',      tag: 'wasm', repoUrl: 'https://github.com/jrouwe/JoltPhysics.js' },
     { id: 'tumble',   label: 'tumble',    tag: 'wasm', repoUrl: 'https://github.com/isaac-mason/tumble' },
     { id: 'ammo',     label: 'ammo.js',   tag: 'wasm', repoUrl: 'https://github.com/kripken/ammo.js' },
-]
-
-// biome-ignore format: pretty
-const SCENARIOS = [
-    { id: 'cube-heap',          label: 'Cube Heap',          category: 'Benchmark', create: createCubeHeapScenario },
-    { id: 'convex-hulls',       label: 'Convex Hull Heap',   category: 'Benchmark', create: createConvexHullsScenario },
-    { id: 'box-container',      label: 'Box Container',      category: 'Benchmark', create: createBoxContainerScenario },
-    { id: 'many-box-stacks',    label: 'Many Box Stacks',    category: 'Benchmark', create: createManyBoxStacksScenario },
-    { id: 'sleeping-pile',      label: 'Sleeping Pile',      category: 'Benchmark', create: createSleepingPileScenario },
-    { id: 'explosion',          label: 'Explosion',          category: 'Benchmark', create: createExplosionScenario },
-    { id: 'destruction',        label: 'Destruction',        category: 'Benchmark', create: createDestructionScenario },
-    { id: 'ten-thousand',       label: 'Ten Thousand',       category: 'Benchmark', create: createTenThousandScenario },
-    { id: 'tumbler',            label: 'Tumbler',            category: 'Benchmark', create: createTumblerScenario },
-    { id: 'wind',               label: 'Wind',               category: 'Benchmark', create: createWindScenario },
-
-    { id: 'pyramid',            label: 'Pyramid',            category: 'Stacking', create: createPyramidScenario },
-    { id: 'stable-stacking',    label: 'Box Stack',          category: 'Stacking', create: createStableStackingScenario },
-    { id: 'jenga',              label: 'Jenga Stack',        category: 'Stacking', create: createJengaScenario },
-    { id: 'stacked-spheres',    label: 'Stacked Spheres',    category: 'Stacking', create: createStackedSpheresScenario },
-    { id: 'candy-cups',         label: 'Candy Cups',         category: 'Stacking', create: createCandyCupsScenario },
-    { id: 'arch',               label: 'Arch',               category: 'Stacking', create: createArchScenario },
-    { id: 'card-house',         label: 'Card House',         category: 'Stacking', create: createCardHouseScenario },
-
-    { id: 'restitution',        label: 'Restitution',        category: 'Behavior', create: createRestitutionScenario },
-    { id: 'friction-ramp',      label: 'Friction Ramp',      category: 'Behavior', create: createFrictionRampScenario },
-    { id: 'high-mass-ratio',    label: 'High Mass Ratio',    category: 'Behavior', create: createHighMassRatioScenario },
-    { id: 'initial-penetration', label: 'Initial Penetration', category: 'Behavior', create: createInitialPenetrationScenario },
-    { id: 'dominoes',           label: 'Dominoes',           category: 'Behavior', create: createDominoesScenario },
-
-    { id: 'raycasts',           label: 'Raycasts',           category: 'Query',  create: createRaycastsScenario,        requires: [Capability.Raycast] },
-    { id: 'ray-curtain',        label: 'Ray Curtain',        category: 'Query',  create: createRayCurtainScenario,      requires: [Capability.Raycast] },
-    { id: 'sea-of-static-boxes', label: 'Sea of Static Boxes', category: 'Query', create: createSeaOfStaticBoxesScenario, requires: [Capability.Raycast] },
-
-    { id: 'contact-listeners',  label: 'Contact Listeners',  category: 'Events', create: createContactListenersScenario, requires: [Capability.ContactListener] },
-
-    { id: 'hinge-bridge',       label: 'Hinge Bridge',       category: 'Joints', create: createHingeBridgeScenario },
-
-    { id: 'fixed-torus',        label: 'Fixed Torus',        category: 'Joints', create: createFixedTorusScenario },
-    { id: 'hinge-joint-chain',  label: 'Hinge Joint Chain',  category: 'Joints', create: createHingeJointChainScenario },
-    { id: 'catenary-bridge',    label: 'Catenary Bridge',    category: 'Joints', create: createCatenaryBridgeScenario },
-    { id: 'spherical-joint-net', label: 'Spherical Net',     category: 'Joints', create: createSphericalJointNetScenario },
-    { id: 'spherical-joint-net2', label: 'Spherical Net 2',  category: 'Joints', create: createSphericalJointNet2Scenario },
-    { id: 'stable-spherical-chain', label: 'Spherical Chain',        category: 'Joints', create: createStableSphericalChainScenario },
-    { id: 'fixed-joints-torus-stress', label: 'Fixed Torus Stress', category: 'Joints', create: createFixedJointsTorusStressScenario },
-    { id: 'distance-joint',       label: 'Distance Joint',     category: 'Joints', create: createDistanceJointScenario },
-    { id: 'limited-hinge-joint',  label: 'Limited Hinge',      category: 'Joints', create: createLimitedHingeJointScenario, requires: [Capability.HingeLimits] },
 ]
 
 function fmtKb(bytes: number): string {

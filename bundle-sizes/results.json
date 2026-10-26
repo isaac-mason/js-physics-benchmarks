@@ -1,6 +1,6 @@
 {
   "meta": {
-    "measuredAt": "2026-10-21T04:19:55.300Z",
+    "measuredAt": "2026-10-26T06:40:54.547Z",
     "versions": {
       "crashcat": "0.0.5",
       "rapier": "0.20.0",
@@ -10,7 +10,7 @@
       "meep": "3.28.0",
       "box3d": "0.1.1",
       "ammo": "7dec46e",
-      "tumble": "0.0.0"
+      "tumble": "0.0.0-canary-20261026-8fb7ed2c"
     }
   },
   "results": {
@@ -79,17 +79,17 @@
     "tumble": {
       "name": "tumble",
       "js": {
-        "raw": 118430,
-        "minified": 56437,
-        "minifiedGzip": 11283
+        "raw": 112248,
+        "minified": 54541,
+        "minifiedGzip": 10807
       },
       "wasm": {
-        "total": 544732,
-        "totalGzip": 164994,
+        "total": 562130,
+        "totalGzip": 172013,
         "files": {
           "tumble.wasm": {
-            "raw": 544732,
-            "gzip": 164994
+            "raw": 562130,
+            "gzip": 172013
           }
         }
       }
